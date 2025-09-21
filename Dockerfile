@@ -17,7 +17,7 @@ RUN \
 # Copy source code
 COPY . .
 
-EXPOSE 3000
+EXPOSE 3777
 
 # Default command (can be overridden in compose)
 CMD ["npm", "run", "dev"]

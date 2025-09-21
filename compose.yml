@@ -17,7 +17,7 @@ services:
       - "37777:3777"
     environment:
       NODE_ENV: development
-      DB_HOST: postgresql://${POSTGRES_USER:-appuser}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-appdb}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-appuser}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-appdb}
       NEXT_PUBLIC_DEVICE_NAME: DB_Server
     volumes:
       - .:/app

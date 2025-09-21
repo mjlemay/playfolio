@@ -24,6 +24,25 @@ export type Club = {
     prefix: string,
     meta: Record<string,string> | null,
     status: AttendanceStatus | null,
+    players: string[] | null,
+    created_at: string,
+    updated_at: string | null,
+}
+
+export type Device = {
+    uid: string,
+    name: string,
+    club_id: string,
+    
+    created_at: string,
+    updated_at: string | null,
+}
+
+export type Squad = {
+    uid: string,
+    status: AttendanceStatus | null,
+    players: string[] | null,
+    meta: Record<string,string> | null,
     created_at: string,
     updated_at: string | null,
 }
