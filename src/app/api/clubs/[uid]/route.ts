@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: { uid: string } }
 ) {
   try {
-    const uid = parseInt(params.uid); // Convert to number since Club.uid is number
+    const uid = params.uid; // Club uid is now a string
     
     const club = await db.select().from(clubs).where(eq(clubs.uid, uid)).limit(1);
     
@@ -54,7 +54,7 @@ export async function PUT(
   { params }: { params: { uid: string } }
 ) {
   try {
-    const uid = parseInt(params.uid); // Convert to number since Club.uid is number
+    const uid = params.uid; // Club uid is now a string
     const body = await request.json();
     
     // TODO: Add validation using Zod
@@ -97,7 +97,7 @@ export async function DELETE(
   { params }: { params: { uid: string } }
 ) {
   try {
-    const uid = parseInt(params.uid); // Convert to number since Club.uid is number
+    const uid = params.uid; // Club uid is now a string
     
     // First, remove all club memberships
     await db.delete(clubPlayers).where(eq(clubPlayers.club_id, uid));

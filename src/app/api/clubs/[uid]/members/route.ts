@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: { uid: string } }
 ) {
   try {
-    const clubId = parseInt(params.uid);
+    const clubId = params.uid;
     
     const members = await db
       .select({
@@ -42,7 +42,7 @@ export async function POST(
   { params }: { params: { uid: string } }
 ) {
   try {
-    const clubId = parseInt(params.uid);
+    const clubId = params.uid;
     const body = await request.json();
     
     // TODO: Add validation using Zod

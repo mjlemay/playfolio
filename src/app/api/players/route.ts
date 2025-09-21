@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { players } from '@/lib/schema';
+import { randomUUID } from 'crypto';
 
 // GET /api/players - List all players
 export async function GET() {
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
     // const validatedData = playerSchema.parse(body);
     
     const newPlayer = await db.insert(players).values({
-      uid: body.uid || `player_${Date.now()}`,
+      uid: randomUUID(),
       meta: body.meta || null,
       status: body.status || null,
       pin: body.pin,

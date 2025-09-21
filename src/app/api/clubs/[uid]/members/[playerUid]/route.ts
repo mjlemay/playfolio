@@ -9,7 +9,7 @@ export async function PUT(
   { params }: { params: { uid: string; playerUid: string } }
 ) {
   try {
-    const clubId = parseInt(params.uid);
+    const clubId = params.uid; // Club uid is now a string
     const { playerUid } = params;
     const body = await request.json();
     
@@ -51,7 +51,7 @@ export async function DELETE(
   { params }: { params: { uid: string; playerUid: string } }
 ) {
   try {
-    const clubId = parseInt(params.uid);
+    const clubId = params.uid; // Club uid is now a string
     const { playerUid } = params;
     
     const deletedMembership = await db

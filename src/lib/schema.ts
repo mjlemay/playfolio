@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, json, serial, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, timestamp, json, primaryKey } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Enum for attendance status
@@ -16,7 +16,7 @@ export const players = pgTable('players', {
 
 // Clubs table (removed players array)
 export const clubs = pgTable('clubs', {
-  uid: serial('uid').primaryKey(),
+  uid: text('uid').primaryKey(),
   prefix: text('prefix').notNull(),
   meta: json('meta').$type<Record<string, string> | null>(),
   status: text('status').$type<typeof attendanceStatusEnum[number] | null>(),
@@ -55,7 +55,7 @@ export const squads = pgTable('squads', {
 
 // Junction table for club-player relationships
 export const clubPlayers = pgTable('club_players', {
-  club_id: integer('club_id').notNull().references(() => clubs.uid),
+  club_id: text('club_id').notNull().references(() => clubs.uid),
   player_uid: text('player_uid').notNull().references(() => players.uid),
   joined_date: timestamp('joined_date', { withTimezone: true }).notNull().defaultNow(),
   role: text('role').notNull().default('member'), // member, captain, coach, etc.

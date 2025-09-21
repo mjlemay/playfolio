@@ -27,7 +27,14 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-blue-400 font-semibold">POST /api/players</span>
             <span className="text-gray-200">Create new player</span>
-            <span className="text-sm text-gray-400">Requires: uid, pin</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Required:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">pin</code> (number)</div>
+              <div className="font-semibold text-gray-300 mt-1">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">uid</code> (string, auto-generated if not provided)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">meta</code> (object)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum: present|absent|banned|unknown|inactive)</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-green-400 font-semibold">GET /api/players/[uid]</span>
@@ -59,7 +66,13 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-blue-400 font-semibold">POST /api/clubs</span>
             <span className="text-gray-200">Create new club</span>
-            <span className="text-sm text-gray-400">Requires: prefix</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Required:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">prefix</code> (string)</div>
+              <div className="font-semibold text-gray-300 mt-1">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">meta</code> (object)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum: present|absent|banned|unknown|inactive)</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-green-400 font-semibold">GET /api/clubs/[uid]</span>
@@ -88,7 +101,13 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-purple-900/30 rounded">
             <span className="font-mono text-blue-400 font-semibold">POST /api/clubs/[uid]/members</span>
             <span className="text-gray-200">Add player to club</span>
-            <span className="text-sm text-gray-400">Requires: player_uid, role</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Required:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">player_uid</code> (string)</div>
+              <div className="font-semibold text-gray-300 mt-1">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">role</code> (string, default: &quot;member&quot;)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum, default: &quot;unknown&quot;)</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-purple-900/30 rounded">
             <span className="font-mono text-yellow-400 font-semibold">PUT /api/clubs/[uid]/members/[playerUid]</span>
@@ -115,7 +134,12 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-blue-400 font-semibold">POST /api/squads</span>
             <span className="text-gray-200">Create new squad</span>
-            <span className="text-sm text-gray-400">Requires: uid</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">uid</code> (string, auto-generated if not provided)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">meta</code> (object)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum: present|absent|banned|unknown|inactive)</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-green-400 font-semibold">GET /api/squads/[uid]</span>
@@ -144,7 +168,14 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-orange-900/30 rounded">
             <span className="font-mono text-blue-400 font-semibold">POST /api/squads/[uid]/members</span>
             <span className="text-gray-200">Add player to squad</span>
-            <span className="text-sm text-gray-400">Requires: player_uid, position, jersey_number</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Required:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">player_uid</code> (string)</div>
+              <div className="font-semibold text-gray-300 mt-1">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">position</code> (string)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">jersey_number</code> (number)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum, default: &quot;unknown&quot;)</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-orange-900/30 rounded">
             <span className="font-mono text-yellow-400 font-semibold">PUT /api/squads/[uid]/members/[playerUid]</span>
@@ -171,7 +202,16 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-blue-400 font-semibold">POST /api/activities</span>
             <span className="text-gray-200">Create new activity</span>
-            <span className="text-sm text-gray-400">Requires: player_uid, club_id, format</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Required:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">player_uid</code> (string)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">club_id</code> (string)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">format</code> (string)</div>
+              <div className="font-semibold text-gray-300 mt-1">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">uid</code> (string, auto-generated if not provided)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">device_id</code> (string)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">meta</code> (object, default: {})</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-green-400 font-semibold">GET /api/activities/[uid]</span>
@@ -203,7 +243,13 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-blue-400 font-semibold">POST /api/devices</span>
             <span className="text-gray-200">Create new device</span>
-            <span className="text-sm text-gray-400">Requires: name, club_id</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Required:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">name</code> (string)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">club_id</code> (string)</div>
+              <div className="font-semibold text-gray-300 mt-1">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">uid</code> (string, auto-generated if not provided)</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-green-400 font-semibold">GET /api/devices/[uid]</span>
@@ -219,6 +265,72 @@ export default function Home() {
             <span className="font-mono text-red-400 font-semibold">DELETE /api/devices/[uid]</span>
             <span className="text-gray-200">Delete device</span>
             <span className="text-sm text-gray-400">Permanently removes device</span>
+          </div>
+        </div>
+      </section>
+
+      {/* POST Request Examples */}
+      <section className="bg-gray-800 border border-gray-700 rounded-lg p-6 shadow-lg">
+        <h2 className="text-2xl font-semibold text-blue-400 mb-4">📝 POST Request Examples</h2>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-lg font-semibold text-blue-300 mb-3">Create Player</h3>
+            <div className="bg-gray-900 p-4 rounded font-mono text-sm">
+              <div className="text-blue-400">POST /api/players</div>
+              <div className="text-gray-200 mt-2">&#123;</div>
+              <div className="ml-2 text-gray-200">&quot;pin&quot;: <span className="text-green-400">1234</span>,</div>
+              <div className="ml-2 text-gray-200">&quot;meta&quot;: &#123;</div>
+              <div className="ml-4 text-gray-200">&quot;name&quot;: <span className="text-yellow-400">&quot;John Doe&quot;</span>,</div>
+              <div className="ml-4 text-gray-200">&quot;email&quot;: <span className="text-yellow-400">&quot;john@example.com&quot;</span></div>
+              <div className="ml-2 text-gray-200">&#125;,</div>
+              <div className="ml-2 text-gray-200">&quot;status&quot;: <span className="text-yellow-400">&quot;unknown&quot;</span></div>
+              <div className="text-gray-200">&#125;</div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold text-purple-300 mb-3">Create Club</h3>
+            <div className="bg-gray-900 p-4 rounded font-mono text-sm">
+              <div className="text-blue-400">POST /api/clubs</div>
+              <div className="text-gray-200 mt-2">&#123;</div>
+              <div className="ml-2 text-gray-200">&quot;prefix&quot;: <span className="text-yellow-400">&quot;FC_WARRIORS&quot;</span>,</div>
+              <div className="ml-2 text-gray-200">&quot;meta&quot;: &#123;</div>
+              <div className="ml-4 text-gray-200">&quot;name&quot;: <span className="text-yellow-400">&quot;Warriors FC&quot;</span>,</div>
+              <div className="ml-4 text-gray-200">&quot;city&quot;: <span className="text-yellow-400">&quot;New York&quot;</span></div>
+              <div className="ml-2 text-gray-200">&#125;,</div>
+              <div className="ml-2 text-gray-200">&quot;status&quot;: <span className="text-yellow-400">&quot;present&quot;</span></div>
+              <div className="text-gray-200">&#125;</div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold text-green-300 mb-3">Create Activity</h3>
+            <div className="bg-gray-900 p-4 rounded font-mono text-sm">
+              <div className="text-blue-400">POST /api/activities</div>
+              <div className="text-gray-200 mt-2">&#123;</div>
+              <div className="ml-2 text-gray-200">&quot;player_uid&quot;: <span className="text-yellow-400">&quot;player123&quot;</span>,</div>
+              <div className="ml-2 text-gray-200">&quot;club_id&quot;: <span className="text-yellow-400">&quot;1&quot;</span>,</div>
+              <div className="ml-2 text-gray-200">&quot;format&quot;: <span className="text-yellow-400">&quot;training&quot;</span>,</div>
+              <div className="ml-2 text-gray-200">&quot;device_id&quot;: <span className="text-yellow-400">&quot;device001&quot;</span>,</div>
+              <div className="ml-2 text-gray-200">&quot;meta&quot;: &#123;</div>
+              <div className="ml-4 text-gray-200">&quot;duration&quot;: <span className="text-green-400">90</span>,</div>
+              <div className="ml-4 text-gray-200">&quot;location&quot;: <span className="text-yellow-400">&quot;Field A&quot;</span></div>
+              <div className="ml-2 text-gray-200">&#125;</div>
+              <div className="text-gray-200">&#125;</div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold text-orange-300 mb-3">Add Player to Club</h3>
+            <div className="bg-gray-900 p-4 rounded font-mono text-sm">
+              <div className="text-blue-400">POST /api/clubs/1/members</div>
+              <div className="text-gray-200 mt-2">&#123;</div>
+              <div className="ml-2 text-gray-200">&quot;player_uid&quot;: <span className="text-yellow-400">&quot;player123&quot;</span>,</div>
+              <div className="ml-2 text-gray-200">&quot;role&quot;: <span className="text-yellow-400">&quot;captain&quot;</span>,</div>
+              <div className="ml-2 text-gray-200">&quot;status&quot;: <span className="text-yellow-400">&quot;present&quot;</span></div>
+              <div className="text-gray-200">&#125;</div>
+            </div>
           </div>
         </div>
       </section>
