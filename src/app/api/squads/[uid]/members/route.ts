@@ -14,8 +14,6 @@ export async function GET(
     const members = await db
       .select({
         player: players,
-        position: squadPlayers.position,
-        jersey_number: squadPlayers.jersey_number,
         joined_date: squadPlayers.joined_date,
         status: squadPlayers.status,
       })

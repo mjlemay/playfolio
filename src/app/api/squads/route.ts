@@ -21,8 +21,6 @@ export async function GET(request: NextRequest) {
           squad_updated_at: squads.updated_at,
           player_uid: squadPlayers.player_uid,
           player_joined_date: squadPlayers.joined_date,
-          player_position: squadPlayers.position,
-          player_jersey_number: squadPlayers.jersey_number,
           player_status: squadPlayers.status,
           player_meta: players.meta,
           player_pin: players.pin,
@@ -51,8 +49,6 @@ export async function GET(request: NextRequest) {
           squadsMap.get(row.squad_uid).members.push({
             player_uid: row.player_uid,
             joined_date: row.player_joined_date,
-            position: row.player_position,
-            jersey_number: row.player_jersey_number,
             status: row.player_status,
             player: {
               uid: row.player_uid,
@@ -94,16 +90,48 @@ export async function GET(request: NextRequest) {
 // POST /api/squads - Create a new squad
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    let body: { 
+      status?: 'present' | 'absent' | 'banned' | 'unknown' | 'inactive'; 
+      meta?: Record<string, string> 
+    } = {};
     
-    // TODO: Add validation using Zod
-    // const validatedData = squadSchema.parse(body);
+    // Check if there's a body to parse
+    const contentType = request.headers.get('content-type');
     
-    const newSquad = await db.insert(squads).values({
+    // Only try to parse JSON if there's a content-type header indicating JSON
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        const text = await request.text();
+        // Only parse if there's actual content
+        if (text.trim()) {
+          body = JSON.parse(text);
+        }
+      } catch (jsonError) {
+        console.error('JSON parsing error:', jsonError);
+        return NextResponse.json(
+          { success: false, error: 'Invalid JSON in request body' },
+          { status: 400 }
+        );
+      }
+    }
+    
+    // Validate status if provided
+    const validStatuses = ['present', 'absent', 'banned', 'unknown', 'inactive'];
+    if (body.status && !validStatuses.includes(body.status)) {
+      return NextResponse.json(
+        { success: false, error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` },
+        { status: 400 }
+      );
+    }
+    
+    // Create squad with optional fields
+    const squadData = {
       uid: randomUUID(),
       status: body.status || null,
       meta: body.meta || null,
-    }).returning();
+    };
+    
+    const newSquad = await db.insert(squads).values(squadData).returning();
     
     return NextResponse.json({
       success: true,
@@ -112,7 +140,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating squad:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create squad' },
+      { success: false, error: 'Failed to create squad', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

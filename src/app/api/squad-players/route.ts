@@ -15,8 +15,6 @@ export async function GET(request: NextRequest) {
         squad_id: squadPlayers.squad_id,
         player_uid: squadPlayers.player_uid,
         joined_date: squadPlayers.joined_date,
-        position: squadPlayers.position,
-        jersey_number: squadPlayers.jersey_number,
         status: squadPlayers.status,
         squad: squads,
         player: players,
@@ -64,8 +62,6 @@ export async function POST(request: NextRequest) {
     const newRelationship = await db.insert(squadPlayers).values({
       squad_id: body.squad_id,
       player_uid: body.player_uid,
-      position: body.position || null,
-      jersey_number: body.jersey_number || null,
       status: body.status || 'unknown',
     }).returning();
     
