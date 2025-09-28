@@ -44,7 +44,12 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-yellow-400 font-semibold">PUT /api/players/[uid]</span>
             <span className="text-gray-200">Update player</span>
-            <span className="text-sm text-gray-400">Updates meta, status, pin</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">meta</code> (object)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum: present|absent|banned|unknown|inactive)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">pin</code> (number)</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-red-400 font-semibold">DELETE /api/players/[uid]</span>
@@ -82,7 +87,12 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-yellow-400 font-semibold">PUT /api/clubs/[uid]</span>
             <span className="text-gray-200">Update club</span>
-            <span className="text-sm text-gray-400">Updates prefix, meta, status</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">prefix</code> (string)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">meta</code> (object)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum: present|absent|banned|unknown|inactive)</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-red-400 font-semibold">DELETE /api/clubs/[uid]</span>
@@ -112,7 +122,11 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-purple-900/30 rounded">
             <span className="font-mono text-yellow-400 font-semibold">PUT /api/clubs/[uid]/members/[playerUid]</span>
             <span className="text-gray-200">Update membership</span>
-            <span className="text-sm text-gray-400">Updates role, status</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">role</code> (string)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum: present|absent|banned|unknown|inactive)</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-purple-900/30 rounded">
             <span className="font-mono text-red-400 font-semibold">DELETE /api/clubs/[uid]/members/[playerUid]</span>
@@ -141,15 +155,19 @@ export default function Home() {
               <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum: present|absent|banned|unknown|inactive)</div>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
+          <div className="grid grid-cols-1 md:gƒrid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-green-400 font-semibold">GET /api/squads/[uid]</span>
             <span className="text-gray-200">Get squad with members</span>
-            <span className="text-sm text-gray-400">Includes positions & jersey numbers</span>
+            <span className="text-sm text-gray-400">Includes member relationships</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-yellow-400 font-semibold">PUT /api/squads/[uid]</span>
             <span className="text-gray-200">Update squad</span>
-            <span className="text-sm text-gray-400">Updates status, meta</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum: present|absent|banned|unknown|inactive)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">meta</code> (object)</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-red-400 font-semibold">DELETE /api/squads/[uid]</span>
@@ -163,7 +181,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-orange-900/30 rounded">
             <span className="font-mono text-green-400 font-semibold">GET /api/squads/[uid]/members</span>
             <span className="text-gray-200">Get squad members</span>
-            <span className="text-sm text-gray-400">Returns members with positions</span>
+            <span className="text-sm text-gray-400">Returns members without positions</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-orange-900/30 rounded">
             <span className="font-mono text-blue-400 font-semibold">POST /api/squads/[uid]/members</span>
@@ -172,15 +190,16 @@ export default function Home() {
               <div className="font-semibold text-gray-300">Required:</div>
               <div>• <code className="bg-gray-600 px-1 rounded">player_uid</code> (string)</div>
               <div className="font-semibold text-gray-300 mt-1">Optional:</div>
-              <div>• <code className="bg-gray-600 px-1 rounded">position</code> (string)</div>
-              <div>• <code className="bg-gray-600 px-1 rounded">jersey_number</code> (number)</div>
               <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum, default: &quot;unknown&quot;)</div>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-orange-900/30 rounded">
             <span className="font-mono text-yellow-400 font-semibold">PUT /api/squads/[uid]/members/[playerUid]</span>
             <span className="text-gray-200">Update membership</span>
-            <span className="text-sm text-gray-400">Updates position, jersey, status</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum: present|absent|banned|unknown|inactive)</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-orange-900/30 rounded">
             <span className="font-mono text-red-400 font-semibold">DELETE /api/squads/[uid]/members/[playerUid]</span>
@@ -204,7 +223,7 @@ export default function Home() {
             <span className="text-gray-200">Create new activity</span>
             <div className="text-sm text-gray-400">
               <div className="font-semibold text-gray-300">Required:</div>
-              <div>• <code className="bg-gray-600 px-1 rounded">player_uid</code> (string)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">activity_uid</code> (string)</div>
               <div>• <code className="bg-gray-600 px-1 rounded">club_id</code> (string)</div>
               <div>• <code className="bg-gray-600 px-1 rounded">format</code> (string)</div>
               <div className="font-semibold text-gray-300 mt-1">Optional:</div>
@@ -221,7 +240,12 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-yellow-400 font-semibold">PUT /api/activities/[uid]</span>
             <span className="text-gray-200">Update activity</span>
-            <span className="text-sm text-gray-400">Updates meta, format, device</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">meta</code> (object)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">format</code> (string)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">device_id</code> (string)</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-red-400 font-semibold">DELETE /api/activities/[uid]</span>
@@ -259,7 +283,11 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-yellow-400 font-semibold">PUT /api/devices/[uid]</span>
             <span className="text-gray-200">Update device</span>
-            <span className="text-sm text-gray-400">Updates name, club_id</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">name</code> (string)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">club_id</code> (string)</div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
             <span className="font-mono text-red-400 font-semibold">DELETE /api/devices/[uid]</span>
