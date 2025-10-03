@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import db from '@/lib/db';
 import { clubs, clubPlayers, players } from '@/lib/schema';
-import ShortUniqueId from 'short-unique-id';
+
+// Generate 12-character deterministic ID
+function generateShortId(): string {
+  const timestamp = Date.now().toString(36);
+  const counter = process.hrtime.bigint().toString(36).slice(-5);
+  return (timestamp + counter).substring(0, 12);
+}
 
 // GET /api/clubs - List all clubs (optionally with players)
 export async function GET(request: NextRequest) {
@@ -125,11 +131,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     
-    // TODO: Add validation using Zod
-    // const validatedData = clubSchema.parse(body);
-    
     const newClub = await db.insert(clubs).values({
-      uid: new ShortUniqueId().randomUUID(),
+      uid: generateShortId(), // Using built-in 12-character ID generator
       displayName: body.displayName,
       safeName: body.safeName,
       meta: body.meta || null,
