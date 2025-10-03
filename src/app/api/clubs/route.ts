@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import db from '@/lib/db';
 import { clubs, clubPlayers, players } from '@/lib/schema';
-import { randomUUID } from 'crypto';
+import ShortUniqueId from 'short-unique-id';
 
 // GET /api/clubs - List all clubs (optionally with players)
 export async function GET(request: NextRequest) {
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
     // const validatedData = clubSchema.parse(body);
     
     const newClub = await db.insert(clubs).values({
-      uid: randomUUID(),
+      uid: new ShortUniqueId().randomUUID(),
       displayName: body.displayName,
       safeName: body.safeName,
       meta: body.meta || null,

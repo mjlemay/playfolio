@@ -1,4 +1,3 @@
-
 export default function Home() {
   return (
     <div className="font-sans max-w-6xl mx-auto p-8 space-y-8 bg-gray-900 min-h-screen">
@@ -72,8 +71,11 @@ export default function Home() {
             <span className="font-mono text-blue-400 font-semibold">POST /api/clubs</span>
             <span className="text-gray-200">Create new club</span>
             <div className="text-sm text-gray-400">
-              <div className="font-semibold text-gray-300">Required:</div>
-              <div>• <code className="bg-gray-600 px-1 rounded">prefix</code> (string)</div>
+              <div className="font-semibold text-gray-300">Headers:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">x-admin-key</code> (required)</div>
+              <div className="font-semibold text-gray-300 mt-1">Required:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">displayName</code> (string)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">safeName</code> (string)</div>
               <div className="font-semibold text-gray-300 mt-1">Optional:</div>
               <div>• <code className="bg-gray-600 px-1 rounded">meta</code> (object)</div>
               <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum: present|absent|banned|unknown|inactive)</div>
@@ -89,7 +91,8 @@ export default function Home() {
             <span className="text-gray-200">Update club</span>
             <div className="text-sm text-gray-400">
               <div className="font-semibold text-gray-300">Optional:</div>
-              <div>• <code className="bg-gray-600 px-1 rounded">prefix</code> (string)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">displayName</code> (string)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">safeName</code> (string)</div>
               <div>• <code className="bg-gray-600 px-1 rounded">meta</code> (object)</div>
               <div>• <code className="bg-gray-600 px-1 rounded">status</code> (enum: present|absent|banned|unknown|inactive)</div>
             </div>
@@ -321,10 +324,12 @@ export default function Home() {
             <h3 className="text-lg font-semibold text-purple-300 mb-3">Create Club</h3>
             <div className="bg-gray-900 p-4 rounded font-mono text-sm">
               <div className="text-blue-400">POST /api/clubs</div>
+              <div className="text-orange-400">Headers: x-admin-key: your_secret_key</div>
               <div className="text-gray-200 mt-2">&#123;</div>
-              <div className="ml-2 text-gray-200">&quot;prefix&quot;: <span className="text-yellow-400">&quot;FC_WARRIORS&quot;</span>,</div>
+              <div className="ml-2 text-gray-200">&quot;displayName&quot;: <span className="text-yellow-400">&quot;Warriors Football Club&quot;</span>,</div>
+              <div className="ml-2 text-gray-200">&quot;safeName&quot;: <span className="text-yellow-400">&quot;warriors-fc&quot;</span>,</div>
               <div className="ml-2 text-gray-200">&quot;meta&quot;: &#123;</div>
-              <div className="ml-4 text-gray-200">&quot;name&quot;: <span className="text-yellow-400">&quot;Warriors FC&quot;</span>,</div>
+              <div className="ml-4 text-gray-200">&quot;description&quot;: <span className="text-yellow-400">&quot;Professional football club&quot;</span>,</div>
               <div className="ml-4 text-gray-200">&quot;city&quot;: <span className="text-yellow-400">&quot;New York&quot;</span></div>
               <div className="ml-2 text-gray-200">&#125;,</div>
               <div className="ml-2 text-gray-200">&quot;status&quot;: <span className="text-yellow-400">&quot;present&quot;</span></div>

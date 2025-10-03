@@ -19,6 +19,7 @@ services:
       NODE_ENV: development
       DATABASE_URL: postgresql://${POSTGRES_USER:-appuser}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-appdb}
       NEXT_PUBLIC_DEVICE_NAME: DB_Server
+      PLAYFOLIO_ADMIN_KEY: supersecretkey
     volumes:
       - .:/app
       - /app/node_modules
