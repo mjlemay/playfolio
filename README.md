@@ -2,6 +2,12 @@
 
 This is an api to help folks manage activities at immersive events such as LARPs or experiences with light game elements.
 
+## Environment Vars
+
+```bash
+PLAYFOLIO_ADMIN_KEY=secretkeyphrase // key should match playfolio admin env. var
+```
+
 ## Getting Started
 
 First, run the development server:

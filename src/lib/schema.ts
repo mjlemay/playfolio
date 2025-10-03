@@ -17,7 +17,8 @@ export const players = pgTable('players', {
 // Clubs table (removed players array)
 export const clubs = pgTable('clubs', {
   uid: text('uid').primaryKey(),
-  prefix: text('prefix').notNull(),
+  displayName: text('displayName').notNull(),
+  safeName: text('safeName').notNull(),
   meta: json('meta').$type<Record<string, string> | null>(),
   status: text('status').$type<typeof attendanceStatusEnum[number] | null>(),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

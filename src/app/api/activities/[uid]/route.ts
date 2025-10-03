@@ -6,10 +6,10 @@ import { activities, players, clubs, devices } from '@/lib/schema';
 // GET /api/activities/[uid] - Get a specific activity with related data
 export async function GET(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const { uid } = params;
+    const { uid } = await params;
     
     const activity = await db
       .select({
@@ -48,10 +48,10 @@ export async function GET(
 // PUT /api/activities/[uid] - Update a specific activity
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const { uid } = params;
+    const { uid } = await params;
     const body = await request.json();
     
     // TODO: Add validation using Zod
@@ -92,10 +92,10 @@ export async function PUT(
 // DELETE /api/activities/[uid] - Delete a specific activity
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const { uid } = params;
+    const { uid } = await params;
     
     const deletedActivity = await db.delete(activities).where(eq(activities.uid, uid)).returning();
 

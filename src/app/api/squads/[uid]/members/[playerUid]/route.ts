@@ -6,10 +6,10 @@ import { squadPlayers } from '@/lib/schema';
 // PUT /api/squads/[squadId]/members/[playerUid] - Update a squad membership
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { uid: string; playerUid: string } }
+  { params }: { params: Promise<{ uid: string; playerUid: string }> }
 ) {
   try {
-    const { uid: squadId, playerUid } = params;
+    const { uid: squadId, playerUid } = await params;
     const body = await request.json();
     
     const updatedMembership = await db
@@ -48,10 +48,10 @@ export async function PUT(
 // DELETE /api/squads/[squadId]/members/[playerUid] - Remove a player from the squad
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { uid: string; playerUid: string } }
+  { params }: { params: Promise<{ uid: string; playerUid: string }> }
 ) {
   try {
-    const { uid: squadId, playerUid } = params;
+    const { uid: squadId, playerUid } = await params;
     
     const deletedMembership = await db
       .delete(squadPlayers)

@@ -21,7 +21,8 @@ export type Activity = {
 
 export type Club = {
     uid: string,
-    prefix: string,
+    displayName: string,
+    safeName: string,
     meta: Record<string,string> | null,
     status: AttendanceStatus | null,
     created_at: string,

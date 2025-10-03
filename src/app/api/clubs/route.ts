@@ -15,7 +15,8 @@ export async function GET(request: NextRequest) {
       const clubsWithMembers = await db
         .select({
           club_uid: clubs.uid,
-          club_prefix: clubs.prefix,
+          club_displayName: clubs.displayName,
+          club_safeName: clubs.safeName,
           club_meta: clubs.meta,
           club_status: clubs.status,
           club_created_at: clubs.created_at,
@@ -39,7 +40,8 @@ export async function GET(request: NextRequest) {
         if (!clubsMap.has(row.club_uid)) {
           clubsMap.set(row.club_uid, {
             uid: row.club_uid,
-            prefix: row.club_prefix,
+            displayName: row.club_displayName,
+            safeName: row.club_safeName,
             meta: row.club_meta,
             status: row.club_status,
             created_at: row.club_created_at,
@@ -94,6 +96,33 @@ export async function GET(request: NextRequest) {
 // POST /api/clubs - Create a new club
 export async function POST(request: NextRequest) {
   try {
+    // Check for admin authentication
+    const adminKey = request.headers.get('x-admin-key');
+    const expectedAdminKey = process.env.PLAYFOLIO_ADMIN_KEY;
+    
+    if (!expectedAdminKey) {
+      console.error('PLAYFOLIO_ADMIN_KEY environment variable is not set');
+      return NextResponse.json(
+        { success: false, error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+    
+    if (!adminKey) {
+      return NextResponse.json(
+        { success: false, error: 'x-admin-key header is required' },
+        { status: 401 }
+      );
+    }
+    
+    if (adminKey !== expectedAdminKey) {
+      console.warn('Invalid admin key attempt was made.');
+      return NextResponse.json(
+        { success: false, error: 'Invalid admin key' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     
     // TODO: Add validation using Zod
@@ -101,7 +130,8 @@ export async function POST(request: NextRequest) {
     
     const newClub = await db.insert(clubs).values({
       uid: randomUUID(),
-      prefix: body.prefix,
+      displayName: body.displayName,
+      safeName: body.safeName,
       meta: body.meta || null,
       status: body.status || null,
     }).returning();

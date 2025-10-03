@@ -6,10 +6,10 @@ import { devices, clubs, activities } from '@/lib/schema';
 // GET /api/devices/[uid] - Get a specific device with related data
 export async function GET(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const { uid } = params;
+    const { uid } = await params;
     
     const device = await db
       .select({
@@ -54,10 +54,10 @@ export async function GET(
 // PUT /api/devices/[uid] - Update a specific device
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const { uid } = params;
+    const { uid } = await params;
     const body = await request.json();
     
     // TODO: Add validation using Zod
@@ -96,10 +96,10 @@ export async function PUT(
 // DELETE /api/devices/[uid] - Delete a specific device
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const { uid } = params;
+    const { uid } = await params;
     
     const deletedDevice = await db.delete(devices).where(eq(devices.uid, uid)).returning();
 

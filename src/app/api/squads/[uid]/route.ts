@@ -6,10 +6,10 @@ import { squads, squadPlayers, players } from '@/lib/schema';
 // GET /api/squads/[uid] - Get a specific squad with its members
 export async function GET(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const { uid } = params;
+    const { uid } = await params;
     
     const squad = await db.select().from(squads).where(eq(squads.uid, uid)).limit(1);
     
@@ -52,10 +52,10 @@ export async function GET(
 // PUT /api/squads/[uid] - Update a specific squad
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const { uid } = params;
+    const { uid } = await params;
     const body = await request.json();
     
     // TODO: Add validation using Zod
@@ -94,10 +94,10 @@ export async function PUT(
 // DELETE /api/squads/[uid] - Delete a specific squad
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const { uid } = params;
+    const { uid } = await params;
     
     // First, remove all squad memberships
     await db.delete(squadPlayers).where(eq(squadPlayers.squad_id, uid));

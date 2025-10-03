@@ -6,10 +6,10 @@ import { clubPlayers, players } from '@/lib/schema';
 // GET /api/clubs/[uid]/members - Get all members of a club
 export async function GET(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const clubId = params.uid;
+    const { uid: clubId } = await params;
     
     const members = await db
       .select({
@@ -39,10 +39,10 @@ export async function GET(
 // POST /api/clubs/[uid]/members - Add a player to the club
 export async function POST(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const clubId = params.uid;
+    const { uid: clubId } = await params;
     const body = await request.json();
     
     // TODO: Add validation using Zod

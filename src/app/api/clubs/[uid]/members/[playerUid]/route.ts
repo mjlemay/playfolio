@@ -6,11 +6,10 @@ import { clubPlayers } from '@/lib/schema';
 // PUT /api/clubs/[clubId]/members/[playerUid] - Update a club membership
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { uid: string; playerUid: string } }
+  { params }: { params: Promise<{ uid: string; playerUid: string }> }
 ) {
   try {
-    const clubId = params.uid; // Club uid is now a string
-    const { playerUid } = params;
+    const { uid: clubId, playerUid } = await params; // Club uid is now a string
     const body = await request.json();
     
     const updatedMembership = await db
@@ -48,11 +47,10 @@ export async function PUT(
 // DELETE /api/clubs/[clubId]/members/[playerUid] - Remove a player from the club
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { uid: string; playerUid: string } }
+  { params }: { params: Promise<{ uid: string; playerUid: string }> }
 ) {
   try {
-    const clubId = params.uid; // Club uid is now a string
-    const { playerUid } = params;
+    const { uid: clubId, playerUid } = await params; // Club uid is now a string
     
     const deletedMembership = await db
       .delete(clubPlayers)

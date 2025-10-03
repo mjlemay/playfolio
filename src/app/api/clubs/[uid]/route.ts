@@ -6,10 +6,10 @@ import { clubs, clubPlayers, players } from '@/lib/schema';
 // GET /api/clubs/[uid] - Get a specific club with its members
 export async function GET(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const uid = params.uid; // Club uid is now a string
+    const { uid } = await params; // Club uid is now a string
     
     const club = await db.select().from(clubs).where(eq(clubs.uid, uid)).limit(1);
     
@@ -51,10 +51,10 @@ export async function GET(
 // PUT /api/clubs/[uid] - Update a specific club
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const uid = params.uid; // Club uid is now a string
+    const { uid } = await params; // Club uid is now a string
     const body = await request.json();
     
     // TODO: Add validation using Zod
@@ -63,7 +63,8 @@ export async function PUT(
     const updatedClub = await db
       .update(clubs)
       .set({ 
-        prefix: body.prefix,
+        displayName: body.displayName,
+        safeName: body.safeName,
         meta: body.meta,
         status: body.status,
         updated_at: new Date()
@@ -94,10 +95,10 @@ export async function PUT(
 // DELETE /api/clubs/[uid] - Delete a specific club
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const uid = params.uid; // Club uid is now a string
+    const { uid } = await params; // Club uid is now a string
     
     // First, remove all club memberships
     await db.delete(clubPlayers).where(eq(clubPlayers.club_id, uid));
