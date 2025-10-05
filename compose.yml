@@ -1,29 +1,23 @@
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Docker compose reference guide at
-# https://docs.docker.com/compose/compose-file/
-
-# Here the instructions define your application as two services called "todo-app" and “todo-database”
-# The service “todo-app” is built from the Dockerfile in the /app directory,
-# and the service “todo-database” uses the official MongoDB image 
-# from Docker Hub - https://hub.docker.com/_/mongo. 
-# You can add other services your application may depend on here.
+# Docker Compose file for Playfolio API development
+# Reference: https://docs.docker.com/compose/compose-file/
 
 services:
-  next-app:
+  playfolio-api:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "37777:3777"
+      - "3777:3777"
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://${POSTGRES_USER:-appuser}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-appdb}
       NEXT_PUBLIC_DEVICE_NAME: DB_Server
       PLAYFOLIO_ADMIN_KEY: supersecretkey
+    restart: unless-stopped 
     volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
+      # Only mount source files that you actively edit
+      - ./src:/app/src:ro
+      - ./public:/app/public:ro  
     depends_on:
       db:
         condition: service_healthy
@@ -32,12 +26,13 @@ services:
         echo 'Waiting for database to be ready...' &&
         npx drizzle-kit push --config=drizzle.config.ts &&
         echo 'Database schema updated, starting Next.js...' &&
-        npm run dev
+        echo 'Starting Next.js on 0.0.0.0:3777...' &&
+        npm run dev -- --hostname 0.0.0.0 --port 3777
       "
 
   db:
-    image: postgres
-    restart: always
+    image: postgres:16-alpine
+    restart: unless-stopped
     shm_size: 128mb
     ports:
       - "5432:5432"
@@ -45,6 +40,8 @@ services:
       POSTGRES_USER: appuser
       POSTGRES_PASSWORD: password
       POSTGRES_DB: appdb
+    volumes:
+      - db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
       interval: 5s
@@ -52,7 +49,12 @@ services:
       retries: 5
 
   adminer:
-    image: adminer
-    restart: always
+    image: adminer:standalone 
+    restart: unless-stopped   
     ports:
       - 8080:8080
+
+volumes:
+  db_data:
+    driver: local
+    name: playfolio_db_data

@@ -1,23 +1,23 @@
-# Development Dockerfile for Next.js
-FROM node:20-alpine
+# Simple Development Dockerfile for Next.js
+FROM node:20
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
+# Copy package.json and install dependencies (ignore lock file)
+COPY package.json ./
+RUN rm -f package-lock.json && \
+    npm cache clean --force && \
+    npm install --prefer-online
 
-# Install dependencies
-RUN \
-  if [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then npm install -g pnpm && pnpm install; \
-  elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-  else npm install; \
-  fi
-
-# Copy source code
+# Copy all source code
 COPY . .
 
+# Set environment variables for Docker networking
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3777
+
+# Expose port
 EXPOSE 3777
 
-# Default command (can be overridden in compose)
-CMD ["npm", "run", "dev"]
+# Default command (can be overridden by compose)
+CMD ["npm", "run", "dev", "--", "--hostname", "0.0.0.0", "--port", "3777"]
