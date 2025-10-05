@@ -30,6 +30,27 @@ services:
         npm run dev -- --hostname 0.0.0.0 --port 3777
       "
 
+  playfolio-admin:
+    build:
+      context: https://github.com/mjlemay/playfolio-admin.git#main
+      dockerfile: Dockerfile
+    ports:
+      - "4400:4400"  # Admin interface on different port
+    environment:
+      NODE_ENV: development
+      PLAYFOLIO_API_URL: http://0.0.0.0:3777
+      PLAYFOLIO_ADMIN_KEY: supersecretkey
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin123
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      playfolio-api:
+        condition: service_started
+    networks:
+      - default
+
   db:
     image: postgres:16-alpine
     restart: unless-stopped
