@@ -45,6 +45,20 @@ export const activities = pgTable('activities', {
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Club keys table for cross-club player sharing
+export const clubKeys = pgTable('club_keys', {
+  key: text('key').primaryKey(),
+  player_uid: text('player_uid').notNull().references(() => players.uid, { onDelete: 'cascade' }),
+  originating_club_id: text('originating_club_id').notNull().references(() => clubs.uid, { onDelete: 'cascade' }),
+  status: text('status').notNull().default('active'), // 'active' | 'revoked' | 'expired'
+  meta: json('meta').$type<Record<string, string> | null>(),
+  expires_at: timestamp('expires_at', { withTimezone: true }),
+  created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  revoked_at: timestamp('revoked_at', { withTimezone: true }),
+  last_used_at: timestamp('last_used_at', { withTimezone: true }),
+  usage_count: integer('usage_count').notNull().default(0),
+});
+
 // Squads table (removed players array)
 export const squads = pgTable('squads', {
   uid: text('uid').primaryKey(),
@@ -82,12 +96,14 @@ export const playersRelations = relations(players, ({ many }) => ({
   activities: many(activities),
   clubMemberships: many(clubPlayers),
   squadMemberships: many(squadPlayers),
+  keys: many(clubKeys),
 }));
 
 export const clubsRelations = relations(clubs, ({ many }) => ({
   devices: many(devices),
   activities: many(activities),
   members: many(clubPlayers),
+  keysCreated: many(clubKeys),
 }));
 
 export const devicesRelations = relations(devices, ({ one, many }) => ({
@@ -110,6 +126,17 @@ export const activitiesRelations = relations(activities, ({ one }) => ({
   device: one(devices, {
     fields: [activities.device_id],
     references: [devices.uid],
+  }),
+}));
+
+export const clubKeysRelations = relations(clubKeys, ({ one }) => ({
+  player: one(players, {
+    fields: [clubKeys.player_uid],
+    references: [players.uid],
+  }),
+  originatingClub: one(clubs, {
+    fields: [clubKeys.originating_club_id],
+    references: [clubs.uid],
   }),
 }));
 
@@ -154,3 +181,5 @@ export type ClubPlayer = typeof clubPlayers.$inferSelect;
 export type NewClubPlayer = typeof clubPlayers.$inferInsert;
 export type SquadPlayer = typeof squadPlayers.$inferSelect;
 export type NewSquadPlayer = typeof squadPlayers.$inferInsert;
+export type ClubKey = typeof clubKeys.$inferSelect;
+export type NewClubKey = typeof clubKeys.$inferInsert;

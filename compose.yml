@@ -14,10 +14,6 @@ services:
       NEXT_PUBLIC_DEVICE_NAME: DB_Server
       PLAYFOLIO_ADMIN_KEY: supersecretkey
     restart: unless-stopped 
-    volumes:
-      # Only mount source files that you actively edit
-      - ./src:/app/src:ro
-      - ./public:/app/public:ro  
     depends_on:
       db:
         condition: service_healthy
@@ -26,7 +22,7 @@ services:
         echo 'Waiting for database to be ready...' &&
         npx drizzle-kit push --config=drizzle.config.ts &&
         echo 'Database schema updated, starting Next.js...' &&
-        echo 'Starting Next.js on 0.0.0.0:3777...' &&
+        echo 'Starting Next.js on localhost:3777...' &&
         npm run dev -- --hostname 0.0.0.0 --port 3777
       "
 
@@ -38,7 +34,7 @@ services:
       - "4400:4400"  # Admin interface on different port
     environment:
       NODE_ENV: development
-      PLAYFOLIO_API_URL: http://0.0.0.0:3777
+      PLAYFOLIO_API_URL: http://playfolio-api:3777
       PLAYFOLIO_ADMIN_KEY: supersecretkey
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: admin123

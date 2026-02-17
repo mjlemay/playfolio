@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16
+    container_name: playfolio-db
+    environment:
+      POSTGRES_DB: playfolio
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppassword
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persist database data
+      - postgres_data:/var/lib/postgresql/data
+      # Init script for test database
+      - ./scripts/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d playfolio"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: playfolio-app
+    ports:
+      - "3777:3777"
+    environment:
+      # Database connection
+      DATABASE_URL: postgresql://appuser:apppassword@postgres:5432/playfolio
+      TEST_DATABASE_URL: postgresql://appuser:apppassword@postgres:5432/playfolio_test
+      # Admin key for club creation
+      PLAYFOLIO_ADMIN_KEY: your-secure-admin-key-here
+      # Next.js
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Mount source code for hot reload
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev -- --hostname 0.0.0.0 --port 3777
+
+volumes:
+  postgres_data:
