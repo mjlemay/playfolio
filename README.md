@@ -22,7 +22,7 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3777](http://localhost:3777) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
@@ -30,9 +30,61 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Run In Docker
 
-The docker will stand up a postgres container so that standing up your own database will not be necessary.
+Docker stands up a PostgreSQL container and runs Drizzle migrations automatically — no manual database setup required.
 
-To run docker, you can use the following command:
-```docker compose up -d```
+### Services
 
-Like the previous command, the app will be available at the url `localhost:3000`.
+| Service | Description | Port |
+|---|---|---|
+| `postgres` | PostgreSQL 16 database | 5432 |
+| `migrate` | Runs Drizzle migrations on startup, then exits | — |
+| `app` | Playfolio API (Next.js dev server) | 3777 |
+| `admin` | Playfolio Admin UI — **optional**, see below | 4400 |
+
+### Start API only
+
+```bash
+docker compose up -d
+```
+
+API available at `http://localhost:3777`.
+
+### Start API + Admin together
+
+```bash
+docker compose --profile admin up -d
+```
+
+Admin UI available at `http://localhost:4400`.
+
+### Rebuild after code changes
+
+```bash
+# API only
+docker compose up -d --build
+
+# API + Admin
+docker compose --profile admin up -d --build
+```
+
+### Fresh start (wipe database)
+
+```bash
+docker compose down -v   # -v removes the postgres_data volume
+docker compose up -d
+```
+
+### Logs
+
+```bash
+docker compose logs -f              # all services
+docker compose logs -f app          # API only
+docker compose logs -f admin        # Admin UI only
+docker compose logs migrate         # check migrations ran OK
+```
+
+### Check running containers
+
+```bash
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+```
