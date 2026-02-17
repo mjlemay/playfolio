@@ -75,6 +75,7 @@ services:
       NODE_ENV: development
       # Reaches the API container by service name on the Docker network
       NEXT_PUBLIC_API_URL: http://app:3777
+      PLAYFOLIO_API_URL: http://app:3777
     depends_on:
       - app
     volumes:
