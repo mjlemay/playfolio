@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { getTestDb } from './test-db';
-import { players, clubs, clubPlayers, clubKeys, activities } from '@/lib/schema';
+import { players, clubs, clubPlayers, clubKeys, keychains, keychainPlayers, activities } from '@/lib/schema';
+import { randomUUID } from 'crypto';
 
 /**
  * Clean all tables in the test database
@@ -11,6 +12,8 @@ export async function cleanDatabase() {
   // Delete in order to respect foreign key constraints
   await db.delete(activities);
   await db.delete(clubKeys);
+  await db.delete(keychainPlayers);
+  await db.delete(keychains);
   await db.delete(clubPlayers);
   await db.delete(players);
   await db.delete(clubs);
@@ -36,7 +39,6 @@ export async function seedTestData() {
     uid: 'test-player-001',
     meta: { name: 'Test Player' },
     status: 'present',
-    pin: 1234,
   }).returning();
 
   // Create club-player membership
@@ -79,7 +81,6 @@ export async function createTestPlayer(overrides: Partial<typeof players.$inferI
     uid,
     meta: overrides.meta || { name: 'Test Player' },
     status: overrides.status || 'present',
-    pin: overrides.pin || Math.floor(Math.random() * 10000),
   }).returning();
 
   return player;
@@ -100,11 +101,32 @@ export async function createClubMembership(clubId: string, playerUid: string) {
 }
 
 /**
- * Create a test key
+ * Create a keychain for a player and return both
+ */
+export async function createTestKeychain(playerUid: string) {
+  const db = getTestDb();
+  const keychainUid = randomUUID();
+  const auth_code = `TEST-${Math.floor(Math.random() * 9000) + 1000}`;
+
+  const [keychain] = await db.insert(keychains).values({
+    uid: keychainUid,
+    auth_code,
+  }).returning();
+
+  await db.insert(keychainPlayers).values({
+    keychain_id: keychainUid,
+    player_uid: playerUid,
+  });
+
+  return keychain;
+}
+
+/**
+ * Create a test key — requires a keychain_id (create with createTestKeychain first)
  */
 export async function createTestKey(
   key: string,
-  playerUid: string,
+  keychainId: string,
   clubId: string,
   overrides: Partial<typeof clubKeys.$inferInsert> = {}
 ) {
@@ -112,7 +134,7 @@ export async function createTestKey(
 
   const [createdKey] = await db.insert(clubKeys).values({
     key,
-    player_uid: playerUid,
+    keychain_id: keychainId,
     originating_club_id: clubId,
     status: overrides.status || 'active',
     meta: overrides.meta || null,

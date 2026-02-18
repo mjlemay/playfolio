@@ -38,7 +38,6 @@ describe('POST /api/players', () => {
       json: async () => ({
         meta: { name: 'John Doe', age: '25' },
         status: 'present',
-        pin: 1234,
       }),
     } as any;
 
@@ -50,15 +49,12 @@ describe('POST /api/players', () => {
     expect(data.data.uid).toBeTruthy();
     expect(data.data.meta).toEqual({ name: 'John Doe', age: '25' });
     expect(data.data.status).toBe('present');
-    expect(data.data.pin).toBe(1234);
     expect(data.data.created_at).toBeTruthy();
   });
 
   it('should create player with minimal data', async () => {
     const mockRequest = {
-      json: async () => ({
-        pin: 5678,
-      }),
+      json: async () => ({}),
     } as any;
 
     const response = await POST(mockRequest);
@@ -66,16 +62,13 @@ describe('POST /api/players', () => {
 
     expect(response.status).toBe(201);
     expect(data.success).toBe(true);
-    expect(data.data.pin).toBe(5678);
     expect(data.data.meta).toBeNull();
     expect(data.data.status).toBeNull();
   });
 
   it('should auto-generate UUID for player', async () => {
     const mockRequest = {
-      json: async () => ({
-        pin: 9999,
-      }),
+      json: async () => ({}),
     } as any;
 
     const response = await POST(mockRequest);
@@ -85,14 +78,9 @@ describe('POST /api/players', () => {
     expect(data.data.uid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
   });
 
-  it('should create multiple players with different PINs', async () => {
-    const request1 = {
-      json: async () => ({ pin: 1111 }),
-    } as any;
-
-    const request2 = {
-      json: async () => ({ pin: 2222 }),
-    } as any;
+  it('should create multiple players with unique UIDs', async () => {
+    const request1 = { json: async () => ({}) } as any;
+    const request2 = { json: async () => ({}) } as any;
 
     const response1 = await POST(request1);
     const response2 = await POST(request2);
@@ -102,8 +90,6 @@ describe('POST /api/players', () => {
 
     expect(response1.status).toBe(201);
     expect(response2.status).toBe(201);
-    expect(data1.data.pin).toBe(1111);
-    expect(data2.data.pin).toBe(2222);
     expect(data1.data.uid).not.toBe(data2.data.uid);
   });
 });
@@ -164,14 +150,12 @@ describe('PUT /api/players/[uid]', () => {
     const player = await createTestPlayer({
       meta: { name: 'Original Name' },
       status: 'present',
-      pin: 1111,
     });
 
     const mockRequest = {
       json: async () => ({
         meta: { name: 'Updated Name', nickname: 'Nick' },
         status: 'absent',
-        pin: 2222,
       }),
     } as any;
 
@@ -185,16 +169,12 @@ describe('PUT /api/players/[uid]', () => {
     expect(data.success).toBe(true);
     expect(data.data.meta).toEqual({ name: 'Updated Name', nickname: 'Nick' });
     expect(data.data.status).toBe('absent');
-    expect(data.data.pin).toBe(2222);
     expect(data.data.updated_at).toBeTruthy();
   });
 
   it('should return 404 when updating non-existent player', async () => {
     const mockRequest = {
-      json: async () => ({
-        meta: { name: 'Test' },
-        pin: 1234,
-      }),
+      json: async () => ({ meta: { name: 'Test' } }),
     } as any;
 
     const response = await PUT(mockRequest, {
@@ -209,16 +189,10 @@ describe('PUT /api/players/[uid]', () => {
   });
 
   it('should update partial fields', async () => {
-    const player = await createTestPlayer({
-      meta: { name: 'John' },
-      pin: 1111,
-    });
+    const player = await createTestPlayer({ meta: { name: 'John' } });
 
     const mockRequest = {
-      json: async () => ({
-        meta: { name: 'Jane' },
-        pin: 1111,
-      }),
+      json: async () => ({ meta: { name: 'Jane' } }),
     } as any;
 
     const response = await PUT(mockRequest, {
@@ -229,7 +203,6 @@ describe('PUT /api/players/[uid]', () => {
 
     expect(response.status).toBe(200);
     expect(data.data.meta).toEqual({ name: 'Jane' });
-    expect(data.data.pin).toBe(1111);
   });
 });
 
@@ -249,7 +222,6 @@ describe('DELETE /api/players/[uid]', () => {
     expect(data.success).toBe(true);
     expect(data.message).toBe('Player deleted successfully');
 
-    // Verify deletion
     const playerRecords = await db.select().from(players).where(eq(players.uid, player.uid));
     expect(playerRecords).toHaveLength(0);
   });
@@ -267,7 +239,6 @@ describe('DELETE /api/players/[uid]', () => {
 
     expect(response.status).toBe(200);
 
-    // Verify player deleted
     const playerRecords = await db.select().from(players).where(eq(players.uid, player.uid));
     expect(playerRecords).toHaveLength(0);
   });

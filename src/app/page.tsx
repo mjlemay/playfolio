@@ -137,6 +137,55 @@ export default function Home() {
             <span className="text-sm text-gray-400">Removes player membership</span>
           </div>
         </div>
+
+        <h3 className="text-lg font-semibold text-purple-300 mt-6 mb-3">Club Keys (Keychain)</h3>
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-indigo-900/30 rounded">
+            <span className="font-mono text-green-400 font-semibold">GET /api/clubs/[uid]/keys</span>
+            <span className="text-gray-200">List keys for this club</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Optional query params:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">player_uid</code> — filter by player</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">status</code> — active | revoked | expired</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-indigo-900/30 rounded">
+            <span className="font-mono text-blue-400 font-semibold">POST /api/clubs/[uid]/keys</span>
+            <span className="text-gray-200">Issue a key to a player</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Required:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">player_uid</code> (string)</div>
+              <div className="font-semibold text-gray-300 mt-1">Optional:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">meta</code> (object)</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">expires_at</code> (ISO timestamp)</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-indigo-900/30 rounded">
+            <span className="font-mono text-red-400 font-semibold">DELETE /api/clubs/[uid]/keys/[key]</span>
+            <span className="text-gray-200">Revoke a key</span>
+            <span className="text-sm text-gray-400">Permanently deletes the key record</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Keychain API */}
+      <section className="bg-gray-800 border border-gray-700 rounded-lg p-6 shadow-lg">
+        <h2 className="text-2xl font-semibold text-indigo-300 mb-2">🔑 Keychain API</h2>
+        <p className="text-sm text-gray-400 mb-4">
+          The keychain is the primary player identity mechanism. A device presents a key + its club ID to resolve which player is interacting.
+        </p>
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3 bg-gray-700 rounded">
+            <span className="font-mono text-blue-400 font-semibold">POST /api/keychain/resolve</span>
+            <span className="text-gray-200">Resolve player from key</span>
+            <div className="text-sm text-gray-400">
+              <div className="font-semibold text-gray-300">Required:</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">key</code> (string) — the UUID key</div>
+              <div>• <code className="bg-gray-600 px-1 rounded">originating_club_id</code> (string)</div>
+              <div className="mt-1 text-gray-400">Returns <code className="bg-gray-600 px-1 rounded">player_uid</code> on success. Updates <code className="bg-gray-600 px-1 rounded">usage_count</code> and <code className="bg-gray-600 px-1 rounded">last_used_at</code>.</div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Squads API */}
@@ -362,6 +411,44 @@ export default function Home() {
               <div className="ml-2 text-gray-200">&quot;player_uid&quot;: <span className="text-yellow-400">&quot;player123&quot;</span>,</div>
               <div className="ml-2 text-gray-200">&quot;role&quot;: <span className="text-yellow-400">&quot;captain&quot;</span>,</div>
               <div className="ml-2 text-gray-200">&quot;status&quot;: <span className="text-yellow-400">&quot;present&quot;</span></div>
+              <div className="text-gray-200">&#125;</div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold text-indigo-300 mb-3">Issue a Key to a Player</h3>
+            <div className="bg-gray-900 p-4 rounded font-mono text-sm">
+              <div className="text-blue-400">POST /api/clubs/club123/keys</div>
+              <div className="text-gray-200 mt-2">&#123;</div>
+              <div className="ml-2 text-gray-200">&quot;player_uid&quot;: <span className="text-yellow-400">&quot;player123&quot;</span></div>
+              <div className="text-gray-200">&#125;</div>
+              <div className="text-green-400 mt-3">{`// Response`}</div>
+              <div className="text-gray-200">&#123;</div>
+              <div className="ml-2 text-gray-200">&quot;success&quot;: <span className="text-blue-400">true</span>,</div>
+              <div className="ml-2 text-gray-200">&quot;data&quot;: &#123;</div>
+              <div className="ml-4 text-gray-200">&quot;key&quot;: <span className="text-yellow-400">&quot;550e8400-e29b-41d4-a716-...&quot;</span>,</div>
+              <div className="ml-4 text-gray-200">&quot;player_uid&quot;: <span className="text-yellow-400">&quot;player123&quot;</span>,</div>
+              <div className="ml-4 text-gray-200">&quot;status&quot;: <span className="text-yellow-400">&quot;active&quot;</span></div>
+              <div className="ml-2 text-gray-200">&#125;</div>
+              <div className="text-gray-200">&#125;</div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold text-indigo-300 mb-3">Resolve Player from Key</h3>
+            <div className="bg-gray-900 p-4 rounded font-mono text-sm">
+              <div className="text-blue-400">POST /api/keychain/resolve</div>
+              <div className="text-gray-300 text-xs mt-1 mb-2">Used by kiosk devices to identify a player via RFID/QR</div>
+              <div className="text-gray-200">&#123;</div>
+              <div className="ml-2 text-gray-200">&quot;key&quot;: <span className="text-yellow-400">&quot;550e8400-e29b-41d4-a716-...&quot;</span>,</div>
+              <div className="ml-2 text-gray-200">&quot;originating_club_id&quot;: <span className="text-yellow-400">&quot;club123&quot;</span></div>
+              <div className="text-gray-200">&#125;</div>
+              <div className="text-green-400 mt-3">{`// Response`}</div>
+              <div className="text-gray-200">&#123;</div>
+              <div className="ml-2 text-gray-200">&quot;success&quot;: <span className="text-blue-400">true</span>,</div>
+              <div className="ml-2 text-gray-200">&quot;data&quot;: &#123;</div>
+              <div className="ml-4 text-gray-200">&quot;player_uid&quot;: <span className="text-yellow-400">&quot;player123&quot;</span></div>
+              <div className="ml-2 text-gray-200">&#125;</div>
               <div className="text-gray-200">&#125;</div>
             </div>
           </div>

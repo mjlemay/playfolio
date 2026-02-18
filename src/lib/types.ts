@@ -6,7 +6,6 @@ export type Player = {
     status: AttendanceStatus | null,
     created_at: string,
     updated_at: string | null,
-    pin: number,
 }
 
 export type Activity = {

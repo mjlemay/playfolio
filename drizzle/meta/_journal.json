@@ -8,6 +8,20 @@
       "when": 1770446521314,
       "tag": "0000_adorable_eddie_brock",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1770446600000,
+      "tag": "0001_keychains",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770446700000,
+      "tag": "0002_drop_player_pin",
+      "breakpoints": true
     }
   ]
 }

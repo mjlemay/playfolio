@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { eq, and } from 'drizzle-orm';
 import db from '@/lib/db';
-import { clubKeys, clubs, players } from '@/lib/schema';
+import { clubKeys, clubs, keychains, keychainPlayers } from '@/lib/schema';
 
 // GET /api/clubs/[uid]/keys/[key] - Get key details with player info
 export async function GET(
@@ -25,14 +25,11 @@ export async function GET(
       );
     }
 
-    // Fetch key with player info
+    // Fetch key with its keychain
     const keyRecords = await db
-      .select({
-        key: clubKeys,
-        player: players,
-      })
+      .select()
       .from(clubKeys)
-      .innerJoin(players, eq(clubKeys.player_uid, players.uid))
+      .innerJoin(keychains, eq(clubKeys.keychain_id, keychains.uid))
       .where(
         and(eq(clubKeys.key, key), eq(clubKeys.originating_club_id, clubId))
       )
@@ -45,13 +42,18 @@ export async function GET(
       );
     }
 
-    const result = keyRecords[0];
+    // Fetch all players in the keychain
+    const members = await db
+      .select({ player_uid: keychainPlayers.player_uid })
+      .from(keychainPlayers)
+      .where(eq(keychainPlayers.keychain_id, keyRecords[0].keychains.uid));
 
     return NextResponse.json({
       success: true,
       data: {
-        ...result.key,
-        player: result.player,
+        ...keyRecords[0].club_keys,
+        keychain: keyRecords[0].keychains,
+        player_uids: members.map((m) => m.player_uid),
       },
     });
   } catch (error) {

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import db from '@/lib/db';
-import { activities } from '@/lib/schema';
-import { resolvePlayerFromKey } from '@/lib/keychain';
+import { activities, players, clubKeys } from '@/lib/schema';
+import { resolvePlayersFromKey, createKeychainForPlayer, generateKey } from '@/lib/keychain';
 
 // GET /api/activities - List all activities
 // Query parameters:
@@ -121,22 +122,48 @@ export async function POST(request: NextRequest) {
     }
 
     let playerUid = body.player_uid;
+    let new_key: string | null = null;
 
     // If key and originating_club_id provided, resolve player_uid
     if (body.key && body.originating_club_id) {
-      const resolution = await resolvePlayerFromKey(
+      const resolution = await resolvePlayersFromKey(
         body.key,
         body.originating_club_id
       );
 
-      if (!resolution.success) {
+      if (resolution.success) {
+        // Known device — use the primary player from the keychain
+        playerUid = resolution.player_uids[0];
+      } else if (resolution.error === 'Key not found or invalid originating club') {
+        // Unknown device — auto-register: create player, keychain, and club key
+        const playerUid_ = randomUUID();
+
+        await db.insert(players).values({
+          uid: playerUid_,
+          meta: body.meta?.kiosk_player_name
+            ? { name: body.meta.kiosk_player_name }
+            : null,
+          status: 'unknown',
+        });
+
+        const keychain = await createKeychainForPlayer(playerUid_);
+
+        new_key = generateKey();
+        await db.insert(clubKeys).values({
+          key: new_key,
+          keychain_id: keychain.uid,
+          originating_club_id: body.originating_club_id,
+          status: 'active',
+        });
+
+        playerUid = playerUid_;
+      } else {
+        // Key is revoked or expired — hard fail
         return NextResponse.json(
           { success: false, error: resolution.error },
           { status: 400 }
         );
       }
-
-      playerUid = resolution.player_uid;
     }
 
     // Validate we have player_uid (either direct or resolved)
@@ -153,7 +180,7 @@ export async function POST(request: NextRequest) {
     const newActivity = await db.insert(activities).values({
       uid: body.uid || `activity_${Date.now()}`,
       player_uid: playerUid,
-      club_id: body.club_id,
+      club_id: body.club_id || body.originating_club_id,
       device_id: body.device_id || null,
       meta: body.meta || {},
       format: body.format,
@@ -161,7 +188,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: newActivity[0]
+      data: newActivity[0],
+      ...(new_key && { new_key }),
     }, { status: 201 });
   } catch (error) {
     console.error('Error creating activity:', error);

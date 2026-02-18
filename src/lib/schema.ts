@@ -11,7 +11,6 @@ export const players = pgTable('players', {
   status: text('status').$type<typeof attendanceStatusEnum[number] | null>(),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp('updated_at', { withTimezone: true }),
-  pin: integer('pin').notNull(),
 });
 
 // Clubs table (removed players array)
@@ -24,6 +23,23 @@ export const clubs = pgTable('clubs', {
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp('updated_at', { withTimezone: true }),
 });
+
+// Keychains table - a shared identity bundle linking multiple player accounts (devices)
+export const keychains = pgTable('keychains', {
+  uid: text('uid').primaryKey(),
+  auth_code: text('auth_code').notNull().unique(),
+  created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp('updated_at', { withTimezone: true }),
+});
+
+// Junction table linking player accounts to a keychain (a player is in at most one keychain)
+export const keychainPlayers = pgTable('keychain_players', {
+  keychain_id: text('keychain_id').notNull().references(() => keychains.uid, { onDelete: 'cascade' }),
+  player_uid: text('player_uid').notNull().references(() => players.uid, { onDelete: 'cascade' }).unique(),
+  created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.keychain_id, table.player_uid] }),
+}));
 
 // Devices table
 export const devices = pgTable('devices', {
@@ -48,7 +64,7 @@ export const activities = pgTable('activities', {
 // Club keys table for cross-club player sharing
 export const clubKeys = pgTable('club_keys', {
   key: text('key').primaryKey(),
-  player_uid: text('player_uid').notNull().references(() => players.uid, { onDelete: 'cascade' }),
+  keychain_id: text('keychain_id').notNull().references(() => keychains.uid, { onDelete: 'cascade' }),
   originating_club_id: text('originating_club_id').notNull().references(() => clubs.uid, { onDelete: 'cascade' }),
   status: text('status').notNull().default('active'), // 'active' | 'revoked' | 'expired'
   meta: json('meta').$type<Record<string, string> | null>(),
@@ -96,7 +112,23 @@ export const playersRelations = relations(players, ({ many }) => ({
   activities: many(activities),
   clubMemberships: many(clubPlayers),
   squadMemberships: many(squadPlayers),
+  keychainMemberships: many(keychainPlayers),
+}));
+
+export const keychainsRelations = relations(keychains, ({ many }) => ({
+  players: many(keychainPlayers),
   keys: many(clubKeys),
+}));
+
+export const keychainPlayersRelations = relations(keychainPlayers, ({ one }) => ({
+  keychain: one(keychains, {
+    fields: [keychainPlayers.keychain_id],
+    references: [keychains.uid],
+  }),
+  player: one(players, {
+    fields: [keychainPlayers.player_uid],
+    references: [players.uid],
+  }),
 }));
 
 export const clubsRelations = relations(clubs, ({ many }) => ({
@@ -130,9 +162,9 @@ export const activitiesRelations = relations(activities, ({ one }) => ({
 }));
 
 export const clubKeysRelations = relations(clubKeys, ({ one }) => ({
-  player: one(players, {
-    fields: [clubKeys.player_uid],
-    references: [players.uid],
+  keychain: one(keychains, {
+    fields: [clubKeys.keychain_id],
+    references: [keychains.uid],
   }),
   originatingClub: one(clubs, {
     fields: [clubKeys.originating_club_id],
@@ -171,6 +203,8 @@ export type Player = typeof players.$inferSelect;
 export type NewPlayer = typeof players.$inferInsert;
 export type Club = typeof clubs.$inferSelect;
 export type NewClub = typeof clubs.$inferInsert;
+export type Keychain = typeof keychains.$inferSelect;
+export type NewKeychain = typeof keychains.$inferInsert;
 export type Device = typeof devices.$inferSelect;
 export type NewDevice = typeof devices.$inferInsert;
 export type Activity = typeof activities.$inferSelect;
@@ -183,3 +217,5 @@ export type SquadPlayer = typeof squadPlayers.$inferSelect;
 export type NewSquadPlayer = typeof squadPlayers.$inferInsert;
 export type ClubKey = typeof clubKeys.$inferSelect;
 export type NewClubKey = typeof clubKeys.$inferInsert;
+export type KeychainPlayer = typeof keychainPlayers.$inferSelect;
+export type NewKeychainPlayer = typeof keychainPlayers.$inferInsert;

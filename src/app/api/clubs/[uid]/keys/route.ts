@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { eq, and } from 'drizzle-orm';
 import db from '@/lib/db';
-import { clubKeys, clubs } from '@/lib/schema';
-import { generateKey, validateClubPlayerOwnership } from '@/lib/keychain';
+import { clubKeys, clubs, keychains } from '@/lib/schema';
+import { generateKey } from '@/lib/keychain';
 
-// POST /api/clubs/[uid]/keys - Create a new key for a player
+// POST /api/clubs/[uid]/keys - Create a new key for a player via their auth_code
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ uid: string }> }
@@ -14,9 +14,9 @@ export async function POST(
     const body = await request.json();
 
     // Validate required fields
-    if (!body.player_uid) {
+    if (!body.auth_code) {
       return NextResponse.json(
-        { success: false, error: 'player_uid is required' },
+        { success: false, error: 'auth_code is required' },
         { status: 400 }
       );
     }
@@ -35,19 +35,17 @@ export async function POST(
       );
     }
 
-    // Validate that the club owns/has membership with the player
-    const hasOwnership = await validateClubPlayerOwnership(
-      clubId,
-      body.player_uid
-    );
+    // Look up keychain by auth_code
+    const keychain = await db
+      .select()
+      .from(keychains)
+      .where(eq(keychains.auth_code, body.auth_code))
+      .limit(1);
 
-    if (!hasOwnership) {
+    if (keychain.length === 0) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Club does not have membership with this player',
-        },
-        { status: 403 }
+        { success: false, error: 'Keychain not found for this auth code' },
+        { status: 404 }
       );
     }
 
@@ -59,7 +57,7 @@ export async function POST(
       .insert(clubKeys)
       .values({
         key,
-        player_uid: body.player_uid,
+        keychain_id: keychain[0].uid,
         originating_club_id: clubId,
         status: 'active',
         meta: body.meta || null,
@@ -92,8 +90,7 @@ export async function GET(
     const { uid: clubId } = await params;
     const { searchParams } = new URL(request.url);
 
-    // Optional filters
-    const playerUid = searchParams.get('player_uid');
+    // Optional filter
     const status = searchParams.get('status');
 
     // Verify club exists
@@ -112,10 +109,6 @@ export async function GET(
 
     // Build query conditions
     const conditions = [eq(clubKeys.originating_club_id, clubId)];
-
-    if (playerUid) {
-      conditions.push(eq(clubKeys.player_uid, playerUid));
-    }
 
     if (status) {
       conditions.push(eq(clubKeys.status, status));

@@ -79,7 +79,6 @@ export async function PUT(
       .set({ 
         meta: body.meta,
         status: body.status,
-        pin: body.pin,
         updated_at: new Date()
       })
       .where(eq(players.uid, uid))

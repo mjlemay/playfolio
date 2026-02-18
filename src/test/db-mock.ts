@@ -35,7 +35,6 @@ export const mockPlayer = {
   status: 'present' as const,
   created_at: new Date('2024-01-01'),
   updated_at: null,
-  pin: 1234,
 };
 
 export const mockClub = {

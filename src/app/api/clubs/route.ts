@@ -32,7 +32,6 @@ export async function GET(request: NextRequest) {
           player_role: clubPlayers.role,
           player_status: clubPlayers.status,
           player_meta: players.meta,
-          player_pin: players.pin,
           player_created_at: players.created_at,
           player_updated_at: players.updated_at,
         })
@@ -66,7 +65,6 @@ export async function GET(request: NextRequest) {
               uid: row.player_uid,
               meta: row.player_meta,
               status: row.player_status,
-              pin: row.player_pin,
               created_at: row.player_created_at,
               updated_at: row.player_updated_at,
             }

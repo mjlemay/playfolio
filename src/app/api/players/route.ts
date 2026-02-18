@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { players } from '@/lib/schema';
 import { randomUUID } from 'crypto';
+import { createKeychainForPlayer } from '@/lib/keychain';
 
 // GET /api/players - List all players
 export async function GET() {
@@ -30,16 +31,19 @@ export async function POST(request: NextRequest) {
     // TODO: Add validation using Zod
     // const validatedData = playerSchema.parse(body);
     
+    const playerUid = randomUUID();
+
     const newPlayer = await db.insert(players).values({
-      uid: randomUUID(),
+      uid: playerUid,
       meta: body.meta || null,
       status: body.status || null,
-      pin: body.pin,
     }).returning();
-    
+
+    const keychain = await createKeychainForPlayer(playerUid);
+
     return NextResponse.json({
       success: true,
-      data: newPlayer[0]
+      data: { ...newPlayer[0], keychain },
     }, { status: 201 });
   } catch (error) {
     console.error('Error creating player:', error);
