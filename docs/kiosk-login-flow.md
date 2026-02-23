@@ -110,13 +110,15 @@ On success, the API returns `{ success: true, data: { ...activity } }`. The kios
 
 ---
 
-## Current Gaps
+## Implementation Status
 
-| Gap | Description |
-|---|---|
-| **Auto-register path missing** | `POST /api/activities` currently returns a `400` error if the key is not found. It needs an auto-create player + issue key + return new key path. |
-| **New key handoff** | The kiosk sync service does not yet handle a response that includes a newly issued key. It needs to update the local player record with the returned key so future syncs use it. |
-| **Activity attribution for merged keychains** | When a keychain has multiple players, activities are attributed to `player_uids[0]`. The intended attribution logic (primary vs. all members) should be confirmed. |
+| Feature | Status | Notes |
+|---|---|---|
+| **Auto-register path** | ✅ Complete | `POST /api/activities` auto-creates player + keychain + issues club key when key not found. Returns `new_key` in response. |
+| **New key handoff** | ✅ Complete | `syncService.ts` handles `new_key` in response and calls `playerData.updatePlayerKey()` to persist it locally. |
+| **Device registration** | ✅ Complete | `useSyncService` hook calls `ensureDeviceRegistered()` on startup. |
+| **Admin activities view** | ✅ Complete | `/dashboard/activities` page with filtering by club, format, and date range. |
+| **Activity attribution for merged keychains** | ⚠️ Review needed | Activities are attributed to `player_uids[0]` from the keychain. Confirm if this is the desired behavior or if all members should receive the activity. |
 
 ---
 
@@ -159,17 +161,28 @@ KIOSK (on 201 with new_key)
 
 ---
 
-## Files to Modify
+## Key Implementation Files
 
 ### `playfolio` API
 
-| File | Change |
+| File | Description |
 |---|---|
-| `src/app/api/activities/route.ts` | Add auto-register path: create player + keychain + issue key when `key` not found |
+| `src/app/api/activities/route.ts` | ✅ Auto-register path implemented: creates player + keychain + issues club key when `key` not found |
+| `src/app/api/devices/route.ts` | ✅ Device registration endpoint |
+| `src/lib/keychain.ts` | Key resolution and keychain management |
 
 ### `t418-kiosk-app`
 
-| File | Change |
+| File | Description |
 |---|---|
-| `src/services/syncService.ts` | Handle `new_key` in sync response — update local player record |
-| `src/services/playerService.ts` | Add `updatePlayerKey(playerId, key)` to persist newly issued club key |
+| `src/services/syncService.ts` | ✅ Handles `new_key` in sync response, updates local player record |
+| `src/services/playerService.ts` | ✅ `updatePlayerKey()` persists newly issued club key |
+| `src/services/deviceService.ts` | Device registration and configuration |
+| `src/hooks/useSyncService.ts` | Initializes sync service on app startup |
+
+### `playfolio-admin`
+
+| File | Description |
+|---|---|
+| `src/app/dashboard/activities/page.tsx` | ✅ Activities view with filtering and pagination |
+| `src/app/api/activities/route.ts` | ✅ Proxy to backend activities endpoint |
