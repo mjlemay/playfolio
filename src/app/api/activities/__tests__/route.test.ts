@@ -21,7 +21,7 @@ describe('POST /api/activities (keychain integration)', () => {
         player_uid: player.uid,
         club_id: club.uid,
         meta: { type: 'training' },
-        format: 'session',
+        format: 'custom',
       }),
     } as any;
 
@@ -33,7 +33,7 @@ describe('POST /api/activities (keychain integration)', () => {
     expect(data.data.player_uid).toBe(player.uid);
     expect(data.data.club_id).toBe(club.uid);
     expect(data.data.meta).toEqual({ type: 'training' });
-    expect(data.data.format).toBe('session');
+    expect(data.data.format).toBe('custom');
   });
 
   it('should create activity using key resolution', async () => {
@@ -53,7 +53,7 @@ describe('POST /api/activities (keychain integration)', () => {
         originating_club_id: clubA.uid,
         club_id: clubB.uid,
         meta: { type: 'match', tournament: 'Summer Cup' },
-        format: 'tournament',
+        format: 'custom',
       }),
     } as any;
 
@@ -65,7 +65,7 @@ describe('POST /api/activities (keychain integration)', () => {
     expect(data.data.player_uid).toBe(player.uid); // Resolved from key
     expect(data.data.club_id).toBe(clubB.uid);
     expect(data.data.meta).toEqual({ type: 'match', tournament: 'Summer Cup' });
-    expect(data.data.format).toBe('tournament');
+    expect(data.data.format).toBe('custom');
   });
 
   it('should increment key usage_count when creating activity', async () => {
@@ -85,7 +85,7 @@ describe('POST /api/activities (keychain integration)', () => {
         originating_club_id: clubA.uid,
         club_id: clubB.uid,
         meta: { type: 'match' },
-        format: 'tournament',
+        format: 'custom',
       }),
     } as any;
 
@@ -97,7 +97,11 @@ describe('POST /api/activities (keychain integration)', () => {
     expect(keyRecord.last_used_at).toBeTruthy();
   });
 
-  it('should return 400 if key resolution fails', async () => {
+  // An unknown key is the kiosk auto-register path (docs/kiosk-login-flow.md §4B):
+  // the API creates the player + keychain, issues a club key, and returns it as
+  // new_key rather than failing the sync.
+  it('should auto-register an unknown key and return new_key', async () => {
+    const db = getTestDb();
     const club = await createTestClub();
 
     const mockRequest = {
@@ -105,17 +109,23 @@ describe('POST /api/activities (keychain integration)', () => {
         key: 'invalid-key',
         originating_club_id: club.uid,
         club_id: club.uid,
-        meta: { type: 'match' },
-        format: 'tournament',
+        meta: { type: 'match', kiosk_player_name: 'Newcomer' },
+        format: 'kiosk_login',
       }),
     } as any;
 
     const response = await POST(mockRequest);
     const data = await response.json();
 
-    expect(response.status).toBe(400);
-    expect(data.success).toBe(false);
-    expect(data.error).toBe('Key not found or invalid originating club');
+    expect(response.status).toBe(201);
+    expect(data.success).toBe(true);
+    expect(data.new_key).toBeTruthy();
+    expect(data.data.player_uid).toBeTruthy();
+
+    // The issued key is usable for the next sync from this device
+    const [issued] = await db.select().from(clubKeys).where(eq(clubKeys.key, data.new_key));
+    expect(issued.originating_club_id).toBe(club.uid);
+    expect(issued.status).toBe('active');
   });
 
   it('should return 400 if neither player_uid nor key provided', async () => {
@@ -125,7 +135,7 @@ describe('POST /api/activities (keychain integration)', () => {
       json: async () => ({
         club_id: club.uid,
         meta: { type: 'match' },
-        format: 'tournament',
+        format: 'custom',
       }),
     } as any;
 
@@ -145,7 +155,7 @@ describe('POST /api/activities (keychain integration)', () => {
         key: 'some-key',
         club_id: club.uid,
         meta: { type: 'match' },
-        format: 'tournament',
+        format: 'custom',
       }),
     } as any;
 
@@ -172,7 +182,7 @@ describe('POST /api/activities (keychain integration)', () => {
         originating_club_id: clubA.uid,
         club_id: clubB.uid,
         meta: { type: 'match' },
-        format: 'tournament',
+        format: 'custom',
       }),
     } as any;
 
@@ -199,7 +209,7 @@ describe('POST /api/activities (keychain integration)', () => {
         originating_club_id: clubA.uid,
         club_id: clubB.uid,
         meta: { type: 'match' },
-        format: 'tournament',
+        format: 'custom',
       }),
     } as any;
 
@@ -227,7 +237,7 @@ describe('POST /api/activities (keychain integration)', () => {
         originating_club_id: clubA.uid,
         club_id: clubB.uid,
         meta: { type: 'match' },
-        format: 'tournament',
+        format: 'custom',
       }),
     } as any;
 
@@ -262,7 +272,7 @@ describe('POST /api/activities (keychain integration)', () => {
         originating_club_id: tournamentOrganizer.uid,
         club_id: clubB.uid,
         meta: { match: 'semi-final', opponent: 'Club C' },
-        format: 'tournament',
+        format: 'custom',
       }),
     } as any;
 
@@ -276,7 +286,7 @@ describe('POST /api/activities (keychain integration)', () => {
         originating_club_id: tournamentOrganizer.uid,
         club_id: clubC.uid,
         meta: { match: 'final' },
-        format: 'tournament',
+        format: 'custom',
       }),
     } as any;
 
@@ -306,7 +316,7 @@ describe('POST /api/activities (keychain integration)', () => {
         player_uid: player.uid,
         club_id: club.uid,
         meta: {},
-        format: 'session',
+        format: 'custom',
       }),
     } as any;
 
