@@ -7,7 +7,7 @@ import {
   createTestKey,
 } from '@/test/test-helpers';
 import { getTestDb } from '@/test/test-db';
-import { clubKeys } from '../schema';
+import { clubKeys, keychainPlayers } from '../schema';
 import { eq } from 'drizzle-orm';
 
 describe('keychain integration tests', () => {
@@ -46,9 +46,8 @@ describe('keychain integration tests', () => {
     it('should resolve all player_uids for a valid key', async () => {
       const club = await createTestClub();
       const player = await createTestPlayer();
-      const keychain = await createTestKeychain(player.uid);
       const key = generateKey();
-      await createTestKey(key, keychain.uid, club.uid);
+      await createTestKey(key, player.uid, club.uid);
 
       const result = await resolvePlayersFromKey(key, club.uid);
 
@@ -66,13 +65,13 @@ describe('keychain integration tests', () => {
 
       // Manually add player2 to the same keychain
       const db = getTestDb();
-      await db.insert(require('../schema').keychainPlayers).values({
+      await db.insert(keychainPlayers).values({
         keychain_id: keychain.uid,
         player_uid: player2.uid,
       });
 
       const key = generateKey();
-      await createTestKey(key, keychain.uid, club.uid);
+      await createTestKey(key, player1.uid, club.uid);
 
       const result = await resolvePlayersFromKey(key, club.uid);
 
@@ -87,9 +86,8 @@ describe('keychain integration tests', () => {
       const db = getTestDb();
       const club = await createTestClub();
       const player = await createTestPlayer();
-      const keychain = await createTestKeychain(player.uid);
       const key = generateKey();
-      await createTestKey(key, keychain.uid, club.uid);
+      await createTestKey(key, player.uid, club.uid);
 
       await resolvePlayersFromKey(key, club.uid);
       await resolvePlayersFromKey(key, club.uid);
@@ -103,9 +101,8 @@ describe('keychain integration tests', () => {
       const club1 = await createTestClub({ uid: 'club-1' });
       const club2 = await createTestClub({ uid: 'club-2' });
       const player = await createTestPlayer();
-      const keychain = await createTestKeychain(player.uid);
       const key = generateKey();
-      await createTestKey(key, keychain.uid, club1.uid);
+      await createTestKey(key, player.uid, club1.uid);
 
       const result = await resolvePlayersFromKey(key, club2.uid);
 
@@ -118,9 +115,8 @@ describe('keychain integration tests', () => {
     it('should reject revoked key', async () => {
       const club = await createTestClub();
       const player = await createTestPlayer();
-      const keychain = await createTestKeychain(player.uid);
       const key = generateKey();
-      await createTestKey(key, keychain.uid, club.uid, { status: 'revoked' });
+      await createTestKey(key, player.uid, club.uid, { status: 'revoked' });
 
       const result = await resolvePlayersFromKey(key, club.uid);
 
@@ -133,9 +129,8 @@ describe('keychain integration tests', () => {
     it('should reject expired key (by status)', async () => {
       const club = await createTestClub();
       const player = await createTestPlayer();
-      const keychain = await createTestKeychain(player.uid);
       const key = generateKey();
-      await createTestKey(key, keychain.uid, club.uid, { status: 'expired' });
+      await createTestKey(key, player.uid, club.uid, { status: 'expired' });
 
       const result = await resolvePlayersFromKey(key, club.uid);
 
@@ -149,9 +144,8 @@ describe('keychain integration tests', () => {
       const db = getTestDb();
       const club = await createTestClub();
       const player = await createTestPlayer();
-      const keychain = await createTestKeychain(player.uid);
       const key = generateKey();
-      await createTestKey(key, keychain.uid, club.uid, { expires_at: new Date('2020-01-01') });
+      await createTestKey(key, player.uid, club.uid, { expires_at: new Date('2020-01-01') });
 
       const result = await resolvePlayersFromKey(key, club.uid);
 
@@ -167,9 +161,8 @@ describe('keychain integration tests', () => {
     it('should allow key with future expiration', async () => {
       const club = await createTestClub();
       const player = await createTestPlayer();
-      const keychain = await createTestKeychain(player.uid);
       const key = generateKey();
-      await createTestKey(key, keychain.uid, club.uid, { expires_at: new Date('2030-01-01') });
+      await createTestKey(key, player.uid, club.uid, { expires_at: new Date('2030-01-01') });
 
       const result = await resolvePlayersFromKey(key, club.uid);
 
