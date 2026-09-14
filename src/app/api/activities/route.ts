@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
     }
 
     const newActivity = await db.insert(activities).values({
-      uid: body.uid || `activity_${Date.now()}`,
+      uid: body.uid || randomUUID(),
       player_uid: playerUid,
       club_id: body.club_id || body.originating_club_id,
       device_id: body.device_id || null,
