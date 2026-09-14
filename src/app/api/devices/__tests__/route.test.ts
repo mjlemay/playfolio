@@ -106,8 +106,10 @@ describe('GET /api/devices/[uid]', () => {
 
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(data.data.uid).toBe(device.uid);
-    expect(data.data.name).toBe('Test iPad');
+    // GET /api/devices/[uid] returns the join result: { device, club, recentActivities }
+    expect(data.data.device.uid).toBe(device.uid);
+    expect(data.data.device.name).toBe('Test iPad');
+    expect(data.data.club.uid).toBe(club.uid);
   });
 
   it('should return 404 for non-existent device', async () => {

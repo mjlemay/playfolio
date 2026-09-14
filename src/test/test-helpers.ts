@@ -11,6 +11,7 @@ export async function cleanDatabase() {
 
   // Delete in order to respect foreign key constraints
   await db.delete(activities);
+  await db.delete(devices);
   await db.delete(clubKeys);
   await db.delete(keychainPlayers);
   await db.delete(keychains);

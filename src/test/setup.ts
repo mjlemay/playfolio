@@ -19,6 +19,9 @@ beforeAll(async () => {
       stdio: 'inherit',
     });
     console.log('Migrations completed successfully');
+    // Start from a clean slate so rows left by an interrupted earlier run
+    // cannot leak into the first test of this one.
+    await cleanDatabase();
   } catch (error) {
     console.error('Failed to run migrations:', error);
     throw error;
