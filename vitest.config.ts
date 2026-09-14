@@ -6,6 +6,12 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./src/test/setup.ts'],
+    env: {
+      DATABASE_URL: 'postgresql://appuser:apppassword@localhost:5433/playfolio_test',
+      TEST_DATABASE_URL: 'postgresql://appuser:apppassword@localhost:5433/playfolio_test',
+      PLAYFOLIO_ADMIN_KEY: 'test-admin-key',
+      KRATOS_PUBLIC_URL: 'http://kratos.test:4433',
+    },
     // Run tests sequentially for database tests
     poolOptions: {
       threads: {

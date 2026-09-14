@@ -3,14 +3,15 @@ import { closeTestDb, getTestDatabaseUrl } from './test-db';
 import { cleanDatabase } from './test-helpers';
 import { execSync } from 'child_process';
 
-// Set up test environment variables
-beforeAll(async () => {
-  const testDbUrl = getTestDatabaseUrl();
-  process.env.DATABASE_URL = testDbUrl;
-  process.env.TEST_DATABASE_URL = testDbUrl;
-  process.env.PLAYFOLIO_ADMIN_KEY = 'test-admin-key';
+// Setup files run before each test file's imports, so environment must be set
+// here at module top level — not inside beforeAll — for modules that read it at import.
+const testDbUrl = getTestDatabaseUrl();
+process.env.DATABASE_URL = testDbUrl;
+process.env.TEST_DATABASE_URL = testDbUrl;
+process.env.PLAYFOLIO_ADMIN_KEY = 'test-admin-key';
+process.env.KRATOS_PUBLIC_URL = 'http://kratos.test:4433';
 
-  // Run migrations on test database
+beforeAll(async () => {
   console.log('Running migrations on test database...');
   try {
     execSync('npx drizzle-kit push', {
@@ -24,12 +25,10 @@ beforeAll(async () => {
   }
 });
 
-// Clean database after each test
 afterEach(async () => {
   await cleanDatabase();
 });
 
-// Close database connection after all tests
 afterAll(async () => {
   await closeTestDb();
 });
