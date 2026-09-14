@@ -1,6 +1,6 @@
-import { sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { getTestDb } from './test-db';
-import { players, clubs, clubPlayers, clubKeys, keychains, keychainPlayers, activities } from '@/lib/schema';
+import { players, clubs, clubPlayers, clubKeys, keychains, keychainPlayers, activities, devices } from '@/lib/schema';
 import { randomUUID } from 'crypto';
 
 /**
@@ -57,7 +57,7 @@ export async function seedTestData() {
  */
 export async function createTestClub(overrides: Partial<typeof clubs.$inferInsert> = {}) {
   const db = getTestDb();
-  const uid = overrides.uid || `test-club-${Date.now()}`;
+  const uid = overrides.uid || `test-club-${randomUUID()}`;
 
   const [club] = await db.insert(clubs).values({
     uid,
@@ -75,7 +75,7 @@ export async function createTestClub(overrides: Partial<typeof clubs.$inferInser
  */
 export async function createTestPlayer(overrides: Partial<typeof players.$inferInsert> = {}) {
   const db = getTestDb();
-  const uid = overrides.uid || `test-player-${Date.now()}`;
+  const uid = overrides.uid || `test-player-${randomUUID()}`;
 
   const [player] = await db.insert(players).values({
     uid,
@@ -122,15 +122,24 @@ export async function createTestKeychain(playerUid: string) {
 }
 
 /**
- * Create a test key — requires a keychain_id (create with createTestKeychain first)
+ * Create a club key for a player. Finds the player's keychain (creating one if the
+ * player has none) and issues the key against it — the same shape the API produces.
  */
 export async function createTestKey(
   key: string,
-  keychainId: string,
+  playerUid: string,
   clubId: string,
   overrides: Partial<typeof clubKeys.$inferInsert> = {}
 ) {
   const db = getTestDb();
+
+  const existing = await db
+    .select({ keychain_id: keychainPlayers.keychain_id })
+    .from(keychainPlayers)
+    .where(eq(keychainPlayers.player_uid, playerUid))
+    .limit(1);
+
+  const keychainId = existing[0]?.keychain_id ?? (await createTestKeychain(playerUid)).uid;
 
   const [createdKey] = await db.insert(clubKeys).values({
     key,
@@ -149,9 +158,9 @@ export async function createTestKey(
  */
 export async function createTestDevice(clubId: string, overrides: Partial<{ uid: string; name: string }> = {}) {
   const db = getTestDb();
-  const uid = overrides.uid || `device-${Date.now()}`;
+  const uid = overrides.uid || `device-${randomUUID()}`;
 
-  const [device] = await db.insert(require('@/lib/schema').devices).values({
+  const [device] = await db.insert(devices).values({
     uid,
     name: overrides.name || 'Test Device',
     club_id: clubId,
