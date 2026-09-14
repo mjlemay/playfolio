@@ -2,6 +2,8 @@
 
 # Setup script for test database
 # Adjust connection parameters as needed for your PostgreSQL setup
+# Native Postgres only. Using Docker? Skip this - the container already has
+# playfolio_test at localhost:5433.
 
 echo "Setting up Playfolio test database..."
 

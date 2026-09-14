@@ -5,6 +5,6 @@ export default defineConfig({
   out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL || process.env.DB_HOST || 'postgresql://appuser:password@localhost:5432/appdb',
+    url: process.env.DATABASE_URL || process.env.DB_HOST || 'postgresql://appuser:password@localhost:5433/appdb',
   },
 });

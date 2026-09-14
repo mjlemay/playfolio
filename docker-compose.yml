@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ─── Database ────────────────────────────────────────────────────────────────
   postgres:
@@ -10,16 +8,19 @@ services:
       POSTGRES_USER: appuser
       POSTGRES_PASSWORD: apppassword
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5433:5432"   # host 5433 because Homebrew postgresql@14 owns 5432 on the dev Mac
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # Creates the playfolio_test database on first boot
       - ./scripts/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql
+      # Creates the kratos database on first boot
+      - ./scripts/init-kratos-db.sql:/docker-entrypoint-initdb.d/init-kratos-db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U appuser -d playfolio"]
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   # ─── Run Drizzle migrations before the app starts ────────────────────────────
   migrate:
@@ -60,6 +61,68 @@ services:
       - /app/node_modules
       - /app/.next
     command: npm run dev -- --hostname 0.0.0.0 --port 3777
+
+  # ─── Ory Kratos: run SQL migrations, then exit ────────────────────────────────
+  kratos-migrate:
+    image: oryd/kratos:v26.2.0
+    container_name: playfolio-kratos-migrate
+    environment:
+      DSN: postgres://appuser:apppassword@postgres:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+    volumes:
+      - ../playfolio-login/kratos:/etc/config/kratos:ro
+    command: -c /etc/config/kratos/kratos.yml migrate sql -e --yes
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # on-failure covers the window where postgres reports ready before init scripts finish
+    restart: on-failure:5
+
+  # ─── Ory Kratos identity server ──────────────────────────────────────────────
+  kratos:
+    image: oryd/kratos:v26.2.0
+    container_name: playfolio-kratos
+    ports:
+      - "4433:4433" # public API (browser + login app)
+      - "127.0.0.1:4434:4434" # admin API — loopback only, no auth on this port
+    environment:
+      DSN: postgres://appuser:apppassword@postgres:5432/kratos?sslmode=disable&max_conns=20&max_idle_conns=4
+    volumes:
+      - ../playfolio-login/kratos:/etc/config/kratos:ro
+    command: serve -c /etc/config/kratos/kratos.yml --dev
+    depends_on:
+      kratos-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:4434/admin/health/ready || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # ─── Playfolio Login (player-facing register/login/profile) ──────────────────
+  login:
+    build:
+      context: ../playfolio-login
+      dockerfile: Dockerfile
+    container_name: playfolio-login
+    ports:
+      - "3778:3778"
+    environment:
+      NODE_ENV: development
+      KRATOS_PUBLIC_URL: http://kratos:4433
+      KRATOS_ADMIN_URL: http://kratos:4434
+      KRATOS_BROWSER_URL: http://localhost:4433
+      APP_URL: http://localhost:3778
+      HOOK_SECRET: dev-hook-secret-change-me
+    depends_on:
+      kratos:
+        condition: service_healthy
+    volumes:
+      - ../playfolio-login:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev -- --hostname 0.0.0.0 --port 3778
 
   # ─── Playfolio Admin (optional — start with: docker compose --profile admin up) ──
   admin:

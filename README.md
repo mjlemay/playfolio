@@ -35,9 +35,13 @@ Docker stands up a PostgreSQL container and runs Drizzle migrations automaticall
 
 | Service | Description | Port |
 |---|---|---|
-| `postgres` | PostgreSQL 16 database | 5432 |
+| `postgres` | PostgreSQL 16 database | 5433 |
 | `migrate` | Runs Drizzle migrations on startup, then exits | — |
 | `app` | Playfolio API (Next.js dev server) | 3777 |
+| `kratos-migrate` | Applies Kratos SQL migrations, then exits | — |
+| `kratos` | Ory Kratos identity server (public API) | 4433 |
+| `kratos` | Kratos admin API — bound to loopback only | 4434 |
+| `login` | Playfolio Login (register / login / profile) | 3778 |
 | `admin` | Playfolio Admin UI — **optional**, see below | 4400 |
 
 ### Start API only

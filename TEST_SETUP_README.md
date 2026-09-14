@@ -1,5 +1,7 @@
 # Quick Start: Running Tests
 
+> Native Postgres only. Using Docker? Skip this — the container already has `playfolio_test` at `localhost:5433`.
+
 ## 🚀 Quick Setup (3 steps)
 
 ### 1. Set up test database

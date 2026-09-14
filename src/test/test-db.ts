@@ -3,7 +3,7 @@ import { Pool } from 'pg';
 import * as schema from '@/lib/schema';
 
 // Use a separate test database
-const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://appuser:apppassword@localhost:5432/playfolio_test';
+const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://appuser:apppassword@localhost:5433/playfolio_test';
 
 let pool: Pool | null = null;
 let testDb: ReturnType<typeof drizzle> | null = null;

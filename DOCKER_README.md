@@ -19,7 +19,7 @@ Done! Your app is running at http://localhost:3777
 
 ## 📋 What's Running?
 
-- **PostgreSQL** on `localhost:5432`
+- **PostgreSQL** on `localhost:5433`
   - Production DB: `playfolio`
   - Test DB: `playfolio_test` (auto-created)
   - User: `appuser`
@@ -28,6 +28,10 @@ Done! Your app is running at http://localhost:3777
 - **Next.js App** on `localhost:3777`
   - Hot reload enabled ✨
   - Code changes auto-update
+
+- **Ory Kratos** on `localhost:4433` (public) and `localhost:4434` (admin, loopback only),
+  plus the **Login app** on `localhost:3778` — see
+  [Identity (Ory Kratos) and the Login app](#identity-ory-kratos-and-the-login-app)
 
 ---
 
@@ -83,7 +87,7 @@ docker-compose exec app npx vitest run src/lib/__tests__/keychain.test.ts
 docker-compose exec postgres psql -U appuser -d playfolio
 
 # Or from your host
-psql -h localhost -U appuser -d playfolio
+psql -h localhost -p 5433 -U appuser -d playfolio
 # Password: apppassword
 ```
 
@@ -98,14 +102,20 @@ docker-compose up -d
 
 ## 🔧 Troubleshooting
 
-### Port 5432 Already in Use?
+### Postgres Port Conflicts
+
+The compose file already publishes Postgres on host port **5433** (`"5433:5432"`), because
+Homebrew's `postgresql@14` commonly owns 5432 on a dev Mac. Connect from the host with
+`-p 5433`; containers still reach it as `postgres:5432` on the Docker network.
+
+If something else has taken 5433 too:
 ```bash
 # Check what's using it
-lsof -i :5432
+lsof -i :5433
 
-# Kill it or change docker-compose.yml:
+# Then pick another free host port in docker-compose.yml:
 ports:
-  - "5433:5432"  # Use different port
+  - "5434:5432"  # host port only — leave the container side at 5432
 ```
 
 ### Database Not Ready?
@@ -210,3 +220,57 @@ docker-compose build
 # Clean up
 docker-compose down -v
 ```
+
+## Identity (Ory Kratos) and the Login app
+
+The stack also runs Ory Kratos v26.2.0 and the player-facing login app from `../playfolio-login`.
+
+| Service | Host port | Purpose |
+|---|---|---|
+| `kratos` | 4433 | Kratos public API (self-service flows, whoami) |
+| `kratos` | 4434 | Kratos admin API — local only, never expose |
+| `login` | 3778 | Register / login / profile pages |
+| `postgres` | **5433** | Postgres (host port moved off 5432 to avoid Homebrew Postgres) |
+
+Kratos config lives in `../playfolio-login/kratos/` and is bind-mounted read-only. It uses its own
+database, `kratos`, in the shared Postgres container. That database is created by
+`scripts/init-kratos-db.sql` on a fresh volume. If your volume predates this, create it once.
+Run this **before** `docker compose up -d`, with only `postgres` started — it is safe to re-run:
+
+```sh
+docker compose up -d postgres
+docker compose exec postgres psql -U appuser -d playfolio -tc \
+  "SELECT 1 FROM pg_database WHERE datname='kratos'" | grep -q 1 || \
+  docker compose exec postgres psql -U appuser -d playfolio -c "CREATE DATABASE kratos;"
+```
+
+Forget it and `kratos-migrate` restart-loops with `database "kratos" does not exist`, so `kratos`
+never starts (it waits for the migrator to exit cleanly).
+
+### Things that bite
+
+- Always use `http://localhost:…`, never `127.0.0.1`. Kratos derives its CSRF cookie name from `serve.public.base_url` (`http://localhost:4433/`), and cookies are host-scoped, so mixing the two produces opaque CSRF errors.
+- Keep the `--dev` flag on the `kratos` command while running over plain http. Without it Kratos marks cookies Secure and the browser drops them.
+- The `login` container installs `node_modules` into an anonymous volume seeded at first start. After adding a dependency, run `docker compose up -d --build --renew-anon-volumes login` — the `--renew-anon-volumes` flag discards the stale `node_modules` volume, without which the rebuilt image still sees the old packages.
+- Secrets in `kratos.yml` and `HOOK_SECRET` in the compose file are development values. For an event, mount a separate non-committed `kratos.yml` with real secrets and set `HOOK_SECRET` to match; Kratos does not interpolate environment variables inside its config file.
+
+### Smoke test
+
+1. `docker compose up -d` — `kratos-migrate` and `migrate` exit 0; `postgres`, `kratos`, `app`, `login` stay up.
+2. Open http://localhost:3778/register, register with an email, password, and display name. You land on `/profile` showing the display name and a `player_uid`. The `login` container must be running for this to succeed: Kratos assigns `player_uid` by calling the registration webhook at `http://login:3778` before saving the identity, so registration fails outright while it is down.
+3. Log out (link on the profile page), log back in at http://localhost:3778/login.
+4. Verify from the terminal (copy the `ory_kratos_session` cookie value from your browser dev tools):
+   ```sh
+   curl -s -b "ory_kratos_session=<value>" http://localhost:4433/sessions/whoami | python3 -m json.tool
+   curl -s http://localhost:4434/admin/identities | python3 -c "import json,sys;[print(i['traits']) for i in json.load(sys.stdin)]"
+   ```
+   `whoami` shows `"active": true`; every identity has a UUID in `traits.player_uid`.
+
+### Resetting test identities
+
+Smoke tests leave throwaway accounts behind. To delete every identity in the dev database (dev only; this is irreversible):
+
+```sh
+curl -s http://127.0.0.1:4434/admin/identities | python3 -c "import json,sys;[print(i['id']) for i in json.load(sys.stdin)]" \
+  | xargs -I{} curl -s -o /dev/null -w '%{http_code} {}\n' -X DELETE http://127.0.0.1:4434/admin/identities/{}
+``` If any identity lacks one, the registration webhook is misconfigured — check `docker compose logs kratos | grep -i hook`.
