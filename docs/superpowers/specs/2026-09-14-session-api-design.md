@@ -43,7 +43,7 @@ Out of scope: protecting existing routes behind sessions, CORS for browser-side 
 
 ### 3.3 Acceptance
 
-`npm test` → 102 passed, 0 failed, against the Docker Postgres on `localhost:5433` (`playfolio_test`). `npm run lint` and `npx tsc --noEmit` clean. No production behaviour change other than the lazy db client.
+`npm test` → 102 passed, 0 failed, against the Docker Postgres on `localhost:5433` (`playfolio_test`). `npx tsc --noEmit` clean; `npm run lint` introduces no new problems (the repo carries ~94 pre-existing `no-explicit-any` errors in test files, out of scope). No production behaviour change other than the lazy db client, plus a startup check in `src/instrumentation.ts` so a missing `DATABASE_URL` still fails at boot rather than per request.
 
 ## 4. Part B — session helper and `/api/me`
 

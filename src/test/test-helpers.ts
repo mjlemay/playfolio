@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { getTestDb } from './test-db';
-import { players, clubs, clubPlayers, clubKeys, keychains, keychainPlayers, activities, devices } from '@/lib/schema';
+import { players, clubs, clubPlayers, clubKeys, keychains, keychainPlayers, activities, devices, squads, squadPlayers } from '@/lib/schema';
 import { randomUUID } from 'crypto';
 
 /**
@@ -15,8 +15,10 @@ export async function cleanDatabase() {
   await db.delete(clubKeys);
   await db.delete(keychainPlayers);
   await db.delete(keychains);
+  await db.delete(squadPlayers);
   await db.delete(clubPlayers);
   await db.delete(players);
+  await db.delete(squads);
   await db.delete(clubs);
 }
 
@@ -107,7 +109,7 @@ export async function createClubMembership(clubId: string, playerUid: string) {
 export async function createTestKeychain(playerUid: string) {
   const db = getTestDb();
   const keychainUid = randomUUID();
-  const auth_code = `TEST-${Math.floor(Math.random() * 9000) + 1000}`;
+  const auth_code = `TEST-${randomUUID().slice(0, 8)}`;
 
   const [keychain] = await db.insert(keychains).values({
     uid: keychainUid,

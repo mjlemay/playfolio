@@ -102,7 +102,8 @@ describe('getSessionPlayer', () => {
   });
 
   it('is idempotent: a second call creates nothing new', async () => {
-    fetchMock.mockResolvedValue(
+    // A Response body can be read once, so each call needs a fresh one.
+    fetchMock.mockImplementation(async () =>
       whoamiResponse(200, session({ email: 'a@b.c', player_uid: UID, display_name: 'Ace' })),
     );
     await getSessionPlayer(req(SESSION_COOKIE));
