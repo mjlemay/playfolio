@@ -32,7 +32,9 @@ describe('POST /api/keychain/resolve', () => {
 
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(data.data.player_uid).toBe(player.uid);
+    expect(data.data.player_uids).toContain(player.uid);
+    expect(data.data.keychain.uid).toBeTruthy();
+    expect(data.data.keychain.auth_code).toBeTruthy();
   });
 
   it('should increment usage tracking on resolution', async () => {
@@ -227,6 +229,8 @@ describe('POST /api/keychain/resolve', () => {
 
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(data.data.player_uid).toBe(player.uid);
+    expect(data.data.player_uids).toContain(player.uid);
+    expect(data.data.keychain.uid).toBeTruthy();
+    expect(data.data.keychain.auth_code).toBeTruthy();
   });
 });
