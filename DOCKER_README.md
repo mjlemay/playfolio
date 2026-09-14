@@ -266,6 +266,21 @@ never starts (it waits for the migrator to exit cleanly).
    ```
    `whoami` shows `"active": true`; every identity has a UUID in `traits.player_uid`.
 
+### Session API
+
+The API can identify the logged-in player from the Kratos session cookie:
+
+| Endpoint | Returns |
+|---|---|
+| `GET /api/me` | The caller's player row (created on first call, `uid` = Kratos `player_uid`), club and squad memberships, and `identity { email, display_name }` |
+| `GET /api/me/activities` | The caller's activities, newest first. Query: `format`, `start_date`, `end_date`, `limit` (≤500), `offset` |
+
+Both return 401 with no session and 503 if Kratos is unreachable. Try it after logging in at http://localhost:3778 (copy the `ory_kratos_session` cookie from dev tools):
+
+```sh
+curl -s -b "ory_kratos_session=<value>" http://localhost:3777/api/me | python3 -m json.tool
+```
+
 ### Resetting test identities
 
 Smoke tests leave throwaway accounts behind. To delete every identity in the dev database (dev only; this is irreversible):

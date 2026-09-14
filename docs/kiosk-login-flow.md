@@ -119,6 +119,7 @@ On success, the API returns `{ success: true, data: { ...activity } }`. The kios
 | **Device registration** | ✅ Complete | `useSyncService` hook calls `ensureDeviceRegistered()` on startup. |
 | **Admin activities view** | ✅ Complete | `/dashboard/activities` page with filtering by club, format, and date range. |
 | **Activity attribution for merged keychains** | ⚠️ Review needed | Activities are attributed to `player_uids[0]` from the keychain. Confirm if this is the desired behavior or if all members should receive the activity. |
+| **Login-created players** | ✅ Complete | A player who registers via Kratos gets a `players` row (uid = `player_uid`) and a keychain on their first `GET /api/me`, so they work at kiosks like any other player. |
 
 ---
 

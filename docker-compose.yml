@@ -50,6 +50,7 @@ services:
       DATABASE_URL: postgresql://appuser:apppassword@postgres:5432/playfolio
       TEST_DATABASE_URL: postgresql://appuser:apppassword@postgres:5432/playfolio_test
       PLAYFOLIO_ADMIN_KEY: your-secure-admin-key-here
+      KRATOS_PUBLIC_URL: http://kratos:4433
       NODE_ENV: development
     depends_on:
       postgres:
