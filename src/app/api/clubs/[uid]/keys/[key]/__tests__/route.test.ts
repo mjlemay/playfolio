@@ -12,7 +12,7 @@ import { eq } from 'drizzle-orm';
 import { generateKey } from '@/lib/keychain';
 
 describe('GET /api/clubs/[uid]/keys/[key]', () => {
-  it('should get key details with player info', async () => {
+  it('should get key details with keychain and member player_uids', async () => {
     const club = await createTestClub();
     const player = await createTestPlayer();
     await createClubMembership(club.uid, player.uid);
@@ -33,10 +33,13 @@ describe('GET /api/clubs/[uid]/keys/[key]', () => {
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
     expect(data.data.key).toBe(key);
-    expect(data.data.player_uid).toBe(player.uid);
     expect(data.data.originating_club_id).toBe(club.uid);
-    expect(data.data.player).toBeTruthy();
-    expect(data.data.player.uid).toBe(player.uid);
+    // Keys hang off a keychain now: the detail payload carries the keychain and
+    // every player in it instead of a single joined player row.
+    expect(data.data.keychain).toBeTruthy();
+    expect(data.data.keychain.uid).toBe(data.data.keychain_id);
+    expect(data.data.keychain.auth_code).toBeTruthy();
+    expect(data.data.player_uids).toContain(player.uid);
     expect(data.data.meta).toEqual({ purpose: 'Tournament' });
   });
 
