@@ -264,7 +264,7 @@ never starts (it waits for the migrator to exit cleanly).
    curl -s -b "ory_kratos_session=<value>" http://localhost:4433/sessions/whoami | python3 -m json.tool
    curl -s http://localhost:4434/admin/identities | python3 -c "import json,sys;[print(i['traits']) for i in json.load(sys.stdin)]"
    ```
-   `whoami` shows `"active": true`; every identity has a UUID in `traits.player_uid`.
+   `whoami` shows `"active": true`; every identity has a UUID in `traits.player_uid`. If any identity lacks one, the registration webhook is misconfigured — check `docker compose logs kratos | grep -i hook`.
 
 ### Session API
 
@@ -288,4 +288,4 @@ Smoke tests leave throwaway accounts behind. To delete every identity in the dev
 ```sh
 curl -s http://127.0.0.1:4434/admin/identities | python3 -c "import json,sys;[print(i['id']) for i in json.load(sys.stdin)]" \
   | xargs -I{} curl -s -o /dev/null -w '%{http_code} {}\n' -X DELETE http://127.0.0.1:4434/admin/identities/{}
-``` If any identity lacks one, the registration webhook is misconfigured — check `docker compose logs kratos | grep -i hook`.
+```
