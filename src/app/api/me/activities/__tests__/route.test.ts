@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GET } from '../route';
+import { MAX_LIMIT } from '../limits';
 import { getTestDb } from '@/test/test-db';
 import { createTestClub, createTestPlayer } from '@/test/test-helpers';
 import { activities } from '@/lib/schema';
@@ -77,6 +78,34 @@ describe('GET /api/me/activities', () => {
     expect(body.data.map((a: { uid: string }) => a.uid)).toEqual(['a2']);
   });
 
+  it('includes rows whose created_at equals the bound exactly', async () => {
+    await seed();
+    // a2 was created at exactly this instant: both bounds are inclusive, so it matches.
+    const body = await (
+      await GET(req('?start_date=2026-09-02T12:00:00.000Z&end_date=2026-09-02T12:00:00.000Z'))
+    ).json();
+    expect(body.data.map((a: { uid: string }) => a.uid)).toEqual(['a2']);
+    expect(body.total).toBe(1);
+  });
+
+  it('returns an empty page for an unknown format', async () => {
+    await seed();
+    const res = await GET(req('?format=nope'));
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.data).toEqual([]);
+    expect(body.total).toBe(0);
+  });
+
+  it('returns an empty page when end_date precedes start_date', async () => {
+    await seed();
+    const res = await GET(req('?start_date=2026-09-03T00:00:00Z&end_date=2026-09-01T00:00:00Z'));
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.data).toEqual([]);
+    expect(body.total).toBe(0);
+  });
+
   it('paginates with limit and offset and reports total', async () => {
     await seed();
     const body = await (await GET(req('?limit=2&offset=1'))).json();
@@ -86,10 +115,26 @@ describe('GET /api/me/activities', () => {
   });
 
   it('caps limit at 500 and rejects bad numbers', async () => {
+    expect(MAX_LIMIT).toBe(500);
     expect((await GET(req('?limit=abc'))).status).toBe(400);
     expect((await GET(req('?offset=-1'))).status).toBe(400);
-    const ok = await GET(req('?limit=9999'));
-    expect(ok.status).toBe(200);
+    await seed();
+    const res = await GET(req('?limit=9999&offset=0'));
+    expect(res.status).toBe(200);
+    expect((await res.json()).count).toBe(3);
+  });
+
+  it('rejects a number too large to be a safe integer', async () => {
+    const res = await GET(req('?offset=99999999999999999999'));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/offset is too large/);
+  });
+
+  it('answers with cache-control: no-store', async () => {
+    await seed();
+    expect((await GET(req())).headers.get('cache-control')).toBe('no-store');
+    expect((await GET(req('?limit=abc'))).headers.get('cache-control')).toBe('no-store');
+    expect((await GET(req('', ''))).headers.get('cache-control')).toBe('no-store');
   });
 
   it('rejects an invalid date with 400', async () => {

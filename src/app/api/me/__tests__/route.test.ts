@@ -61,6 +61,24 @@ describe('GET /api/me', () => {
     expect(body.data.squadMemberships).toEqual([]);
   });
 
+  it('answers with cache-control: no-store', async () => {
+    fetchMock.mockImplementation(async () => whoami(200, { email: 'a@b.c', player_uid: UID }));
+    const res = await GET(req(COOKIE));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('cache-control')).toBe('no-store');
+    expect((await GET(req())).headers.get('cache-control')).toBe('no-store');
+  });
+
+  it('returns the 500 envelope when a database read fails', async () => {
+    fetchMock.mockImplementation(async () => whoami(200, { email: 'a@b.c', player_uid: UID }));
+    const players = await import('@/lib/players');
+    vi.spyOn(players, 'getPlayerMemberships').mockRejectedValueOnce(new Error('boom'));
+    const res = await GET(req(COOKIE));
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ success: false, error: 'Failed to fetch player' });
+    expect(res.headers.get('cache-control')).toBe('no-store');
+  });
+
   it('omits display_name from identity when the session has none', async () => {
     fetchMock.mockResolvedValue(whoami(200, { email: 'a@b.c', player_uid: UID }));
     const body = await (await GET(req(COOKIE))).json();
