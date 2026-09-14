@@ -71,6 +71,44 @@ describe('getSessionPlayer', () => {
     expect(result).toMatchObject({ ok: false, status: 503 });
   });
 
+  it('returns 503 when the whoami request times out', async () => {
+    // The real fetch is aborted by AbortSignal.timeout(5000); simulate the rejection
+    // it produces rather than waiting five seconds.
+    fetchMock.mockImplementation(
+      () =>
+        new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new DOMException('The operation was aborted due to timeout', 'TimeoutError')),
+            10,
+          ),
+        ),
+    );
+    const result = await getSessionPlayer(req(SESSION_COOKIE));
+    expect(result).toEqual({ ok: false, status: 503, error: 'Identity service unavailable' });
+  });
+
+  it('passes an abort signal to the whoami fetch', async () => {
+    fetchMock.mockResolvedValue(whoamiResponse(401, {}));
+    await getSessionPlayer(req(SESSION_COOKIE));
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://kratos.test:4433/sessions/whoami',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+  });
+
+  it('returns 503 when a 200 whoami body cannot be parsed', async () => {
+    fetchMock.mockResolvedValue(new Response('<html>', { status: 200 }));
+    const result = await getSessionPlayer(req(SESSION_COOKIE));
+    expect(result).toEqual({ ok: false, status: 503, error: 'Identity service unavailable' });
+    expect(console.error).toHaveBeenCalledWith('[session] kratos whoami returned an unreadable body');
+  });
+
+  it('returns 401 when Kratos answers 403 (e.g. session_aal2_required)', async () => {
+    fetchMock.mockResolvedValue(whoamiResponse(403, { error: { id: 'session_aal2_required' } }));
+    const result = await getSessionPlayer(req(SESSION_COOKIE));
+    expect(result).toMatchObject({ ok: false, status: 401 });
+  });
+
   it('returns 401 and logs when the session has no valid player_uid', async () => {
     fetchMock.mockResolvedValue(whoamiResponse(200, session({ email: 'a@b.c', player_uid: 'nope' })));
     const result = await getSessionPlayer(req(SESSION_COOKIE));

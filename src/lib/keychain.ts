@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { eq, and } from 'drizzle-orm';
-import db from './db';
+import db, { type Db } from './db';
 import { clubKeys, keychains, keychainPlayers } from './schema';
 
 const WORDS = [
@@ -26,41 +26,54 @@ export function generateAuthCode(): string {
 }
 
 /**
+ * The subset of the Drizzle client this module needs. `db` and a transaction
+ * handle from `db.transaction()` are both assignable to it, so callers can run
+ * keychain creation inside a transaction of their own.
+ */
+export type KeychainTx = Pick<Db, 'select' | 'insert'>;
+
+/**
  * Creates a new keychain and adds the given player to it.
  * Used when a player account is first created (auto-create on device contact).
+ *
+ * Pass `tx` to join a caller's transaction (so a failure here rolls their work
+ * back too); with no `tx` the two inserts get a transaction of their own.
  */
-export async function createKeychainForPlayer(playerUid: string): Promise<{
+export async function createKeychainForPlayer(
+  playerUid: string,
+  tx?: KeychainTx
+): Promise<{
   uid: string;
   auth_code: string;
 }> {
-  // Generate a unique auth code
-  let auth_code: string;
-  let attempts = 0;
-  do {
-    auth_code = generateAuthCode();
-    const conflict = await db
-      .select()
-      .from(keychains)
-      .where(eq(keychains.auth_code, auth_code))
-      .limit(1);
-    if (conflict.length === 0) break;
-    attempts++;
-  } while (attempts < 20);
+  const run = async (t: KeychainTx) => {
+    // Generate a unique auth code
+    let auth_code = generateAuthCode();
+    for (let attempts = 0; attempts < 20; attempts++) {
+      const conflict = await t
+        .select()
+        .from(keychains)
+        .where(eq(keychains.auth_code, auth_code))
+        .limit(1);
+      if (conflict.length === 0) break;
+      auth_code = generateAuthCode();
+    }
 
-  const keychainUid = randomUUID();
+    const keychainUid = randomUUID();
 
-  await db.transaction(async (tx) => {
-    await tx.insert(keychains).values({
+    await t.insert(keychains).values({
       uid: keychainUid,
-      auth_code: auth_code!,
+      auth_code,
     });
-    await tx.insert(keychainPlayers).values({
+    await t.insert(keychainPlayers).values({
       keychain_id: keychainUid,
       player_uid: playerUid,
     });
-  });
 
-  return { uid: keychainUid, auth_code: auth_code! };
+    return { uid: keychainUid, auth_code };
+  };
+
+  return tx ? run(tx) : db.transaction(run);
 }
 
 /**
